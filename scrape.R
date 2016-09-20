@@ -6,9 +6,13 @@ library(reshape)
 library(dplyr)
 library(Rfacebook)
 library(readr)
+<<<<<<< HEAD
 
 # Hoang Phan
 
+=======
+# anananananan
+>>>>>>> 5c5e966fb972fc14dec783ddbaa3b08ec730976f
 ##########################
 ###  1. Dantri.com   #####
 ##########################
