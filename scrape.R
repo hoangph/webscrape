@@ -8,7 +8,8 @@ library(Rfacebook)
 library(readr)
 
 # Hoang Huy Phan edit trong may 2
-#them branch cac thu
+# dung tk2
+
 
 ##########################
 ###  1. Dantri.com   #####
