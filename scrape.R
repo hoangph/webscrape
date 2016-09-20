@@ -7,9 +7,6 @@ library(dplyr)
 library(Rfacebook)
 library(readr)
 
-# Hoang Huy Phan edit trong may 2
-# dung tk2
-
 
 ##########################
 ###  1. Dantri.com   #####
