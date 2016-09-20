@@ -7,6 +7,8 @@ library(dplyr)
 library(Rfacebook)
 library(readr)
 
+# Hoang Phan
+
 ##########################
 ###  1. Dantri.com   #####
 ##########################
