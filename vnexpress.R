@@ -41,7 +41,26 @@ read_page = function(start_date, end_date, link, content_selector, date_selector
   stop = 0
   for (i in c(1:length(link))) {
     url = as.character(link[i])
-    html = read_html(url)
+    # try catch to avoid timeout error
+    ok <- FALSE
+    counter <- 0
+    while (ok == FALSE & counter <= 20) { #repeat 20 times
+      counter <- counter + 1
+      html <- tryCatch({                  
+        read_html(url)
+      },
+      error = function(e) {
+        Sys.sleep(5)
+        e
+      }
+      )
+      if ("error" %in% class(html)) {
+        cat(".")
+      } else {
+        ok <- TRUE
+        cat(" Done.")
+      }
+    }
     ar_date = html %>% html_nodes(date_selector) %>% html_text()%>%
             paste(collapse = "") %>% clean_date()
     message("Scraping date: ", ar_date, ", link: ", url)
