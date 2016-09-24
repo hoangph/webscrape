@@ -55,7 +55,7 @@ read_page = function(start_date, end_date, link, content_selector, date_selector
       }
       )
       if ("error" %in% class(html)) {
-        cat(".")
+        message(".")
       } else {
         ok <- TRUE
         cat(" Done.")
@@ -125,12 +125,32 @@ article_selector = "#news_home .txt_link"
 # Save directory
 save_dir = paste(dir,"/vnexpress",sep="")
 
-# Call function
-# Parameters required: 
+#Call function
+#Parameters required: 
 #   source, source_suffix, start_date, end_date, content_selector, 
 #   date_selector, link_selector
-timestart = now()
-final = scrape_news(source, source_suffix, start_date, end_date, content_selector, 
-            date_selector, link_selector, save_dir)
-print(now()-timestart)
+#timestart = now()
+#final = scrape_news(source, source_suffix, start_date, end_date, content_selector, 
+#            date_selector, link_selector, save_dir)
+#print(now()-timestart)
+
+#For loop (no function)
+i = 1
+#final = c()
+while (1) {
+  cat("Scraping page", i)
+  link_table = source %>% paste(i,source_suffix, sep = "") %>% 
+    get_article(article_selector)
+  link = link_table$article_link
+  content = read_page(start_date, end_date, link, content_selector, date_selector)
+  sum_table = cbind(link_table[1:nrow(content[[1]]),],content[[1]])
+  final = rbind(final, sum_table)
+  if (content[[2]] == 1) {
+    break
+  } else {i=i+1}
+  save(final, save_dir)
+}
+
+#Save
+return(output)
 write_excel_csv(final,paste("final",today(),".csv",sep=""))
