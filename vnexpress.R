@@ -3,12 +3,12 @@
 #####  written for DEPOCEN 
 #####  by Hoang Phan. September 2016 
 ################################################
-library(readr)
 library(tidyverse)
 library(Rfacebook)
-library(rvest)
 library(lubridate)
+library(rvest)
 library(stringr)
+
 dir = "D:/Webscrape/webscrape"
 setwd(dir)
 ##########################
@@ -45,14 +45,16 @@ read_page = function(start_date, end_date, link, content_selector, date_selector
     ar_date = html %>% html_nodes(date_selector) %>% html_text()%>%
             paste(collapse = "") %>% clean_date()
     message("Scraping date: ", ar_date, ", link: ", url)
-    if (ar_date >= start_date & ar_date <= end_date) { #get articles in the time range
-      paragraph = html %>% html_nodes(content_selector) %>% 
-        html_text() %>% paste(collapse = " ")
-    } else { 
-      stop = 1 #signal to stop outside loop
-      break
+    if (!is.na(ar_date)) {
+      if (ar_date >= start_date & ar_date <= end_date) { #get articles in the time range
+        paragraph = html %>% html_nodes(content_selector) %>% 
+          html_text() %>% paste(collapse = " ")
+      } else {
+        stop = 1 #signal to stop outside loop
+        break
+      }
+      result = rbind(result,data.frame(ar_date,paragraph))
     }
-    result = rbind(result,data.frame(ar_date,paragraph))
   }
   return(list(result,stop))
 }
@@ -71,10 +73,12 @@ scrape_news = function (source, source_suffix,
     content = read_page(start_date, end_date, link, content_selector, date_selector)
     sum_table = cbind(link_table[1:nrow(content[[1]]),],content[[1]])
     output = rbind(output, sum_table)
-    if (content[[2]] == 1) {break} else {i=i+1}
+    if (content[[2]] == 1) {
+      break
+    } else {i=i+1}
+    save(output, save_dir)
   }
   #Save
-  save(output, save_dir)
   return(output)
 }
 
@@ -94,7 +98,7 @@ save = function(file, save_dir) {
 # Parameter
 source = "http://vnexpress.net/tin-tuc/phap-luat/page/"
 source_suffix = ".html"
-start_date = today()
+start_date = clean_date("01/01/2015") 
 end_date = today()
 content_selector = ".short_intro , .Normal"
 date_selector = ".block_timer"
@@ -110,4 +114,4 @@ timestart = now()
 final = scrape_news(source, source_suffix, start_date, end_date, content_selector, 
             date_selector, link_selector, save_dir)
 print(now()-timestart)
-
+write_excel_csv(final,paste("final",today(),".csv",sep=""))
