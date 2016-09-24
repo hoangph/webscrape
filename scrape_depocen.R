@@ -26,12 +26,13 @@ get_article = function(url, article_selector) {
   return(data.frame(article_link, article_title))
 }
 
-# 
+# Translate date format from Vietnamese -> R (English)
 clean_date = function (date) {
   date_s = str_sub(date, str_locate(date,"/")[1]-2,str_locate(date,"/")[1]-2+9)
   date_d = as.Date(date_s,"%d/%m/%Y")
   return(date_d)
 }
+
 
 read_page = function(start, end, link, selector, date_selector) {
   result = c()
