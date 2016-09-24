@@ -9,7 +9,7 @@ library(Rfacebook)
 library(rvest)
 library(lubridate)
 library(stringr)
-dir = "C:/Users/Windows/Dropbox/DEPOCEN/Scrape/webscrape"
+dir = "D:/Webscrape/webscrape"
 setwd(dir)
 ##########################
 #####  Vnexpress    ######
