@@ -137,6 +137,7 @@ save_dir = paste(dir,"/vnexpress",sep="")
 #For loop (no function)
 i = 1
 #final = c()
+#final = read_csv(list.files()[1])
 while (1) {
   cat("Scraping page", i)
   link_table = source %>% paste(i,source_suffix, sep = "") %>% 
