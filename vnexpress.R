@@ -9,7 +9,7 @@ library(lubridate)
 library(rvest)
 library(stringr)
 
-dir = "C:/Users/Windows/Dropbox/DEPOCEN/Scrape/webscrape"
+dir = "D:/Webscrape/webscrape"
 #dir = getwd()
 setwd(dir)
 ##########################
@@ -120,10 +120,11 @@ save = function(file, save_dir, code) {
 ####### __Execution ##########
 ##############################
 
-# ___Scrape cac chuyen muc khac####
+# ___Scrape cac chuyen muc####
 
-tencm = c("thoisu","kinhdoanh","giaoduc","congdong")
-linkcm = c("http://vnexpress.net/tin-tuc/thoi-su/page/",
+tencm = c("phapluat","thoisu","kinhdoanh","giaoduc","congdong")
+linkcm = c("http://vnexpress.net/tin-tuc/phap-luat/page/",
+           "http://vnexpress.net/tin-tuc/thoi-su/page/",
            "http://kinhdoanh.vnexpress.net/page/",
            "http://vnexpress.net/tin-tuc/giao-duc/page/",
            "http://vnexpress.net/tin-tuc/cong-dong/page/")
