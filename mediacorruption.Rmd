@@ -1,0 +1,40 @@
+---
+title: "Media corruption"
+output:
+  html_notebook: default
+  html_document: default
+
+---
+
+Dưới đây là kết quả scraping web vnexpress.net (4 chuyên mục bao gồm pháp luật, thời sự, kinh doanh và cộng đồng). Codebook của dự án media corruption được tham khảo để theo dõi sự thay đổi trong thông tin về tham nhũng trên báo mạng.
+
+
+```{r include=FALSE}
+library(readr)
+library(stringr)
+setwd("C:/Users/Windows/Dropbox/DEPOCEN/Scrape/webscrape/vnexpress")
+# read the data in
+database = c()
+for (i in c(1:length(list.files()))) {
+  chuyenmuc = str_split(list.files()[i],pattern = "_")[[1]][1]
+  database_sub = read_csv(list.files()[i])
+  database_sub = data.frame(rep(chuyenmuc,nrow(database_sub)),database_sub)
+  database = rbind(database, database_sub)
+}
+rm(database_sub)
+colnames(database) <- c("chuyenmuc","link","title","date","content")
+database = unique(database)
+# Some cleaning
+database$content = str_to_lower(database$content)
+
+```
+
+Đầu tiên search bằng key word các bài có từ "tham nhũng" hoặc "hối lộ"
+```{r}
+
+```
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
