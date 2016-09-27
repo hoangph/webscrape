@@ -29,8 +29,43 @@ database$content = str_to_lower(database$content)
 
 ```
 
-Đầu tiên search bằng key word các bài có từ "tham nhũng" hoặc "hối lộ"
+Đầu tiên search các bài có từ "tham nhũng" hoặc "hối lộ" trong: (1)Tiêu đề; hoặc (2) 2 đoạn văn đầu (đoạn đầu thường là intro của bài báo)
 ```{r}
+library(plyr)
+first2_real_text = function(text) {
+  text = text[nchar(text)>1]
+  text = text[1:2] %>% paste(collapse="")
+  return(text)
+}
+count_key = function(database,key) {
+  # search in title
+  key_title = str_count(database$title,key)
+  # search in text (first 2 paragraphs)
+  text = database$content %>% str_split(pattern = "\r\n\t") %>%
+    lapply(FUN=first2_real_text)
+  key_text = str_count(text,key)
+  return(list(title=key_title,text=key_text))
+}
+# Keywords counting
+key1 = "tham nhũng"
+key_count1 = count_key(database, key1)
+key2 = "hối lộ"
+key_count2 = count_key(database, key2)
+# Keywords position
+ar_contain1 = which(key_count1[[1]]>0 | key_count1[[2]]>0)
+ar_contain2 = which(key_count2[[1]]>0 | key_count2[[2]]>0)
+ar_contain = union(ar_contain1,ar_contain2)
+
+# Article containing keywords
+ar_contain_tbl = database[ar_contain,]
+
+# No. article containing keywords
+cat("Số bài: ", length(ar_contain),"\n")
+cat("Ví dụ: \n")
+for (i in c(1:5)) {
+  cat(ar_contain_tbl$title[i],"\n")
+  message(ar_contain_tbl$link[i])
+}
 
 ```
 

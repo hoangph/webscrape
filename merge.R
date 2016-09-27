@@ -17,8 +17,21 @@ colnames(database) <- c("chuyenmuc","link","title","date","content")
 #  message(tencm[i],": ",as.character(min(data$date[data$chuyenmuc==tencm[i]])))
 #}
 
-keywords = "bi<U+1EC7>t th<U+1EF1>"
-thamnhung = match(keywords, str_match(database$title,keywords))
+key = "chấp hành"
+#a = match(keywords, str_match(database$title,keywords))
 
-find = str_count(string = sample,pattern = a)
+find = str_count(string = sample,pattern = key)
+
+# search keyword
+
+key = "độc giả"
+key_count = str_count(sample$content,key2)
+ar_contain = which(key_count>0)
+
+
+key = c("tham nhũng", "hối lộ")
+
+str_count(sample$content,key2)
+
+
 

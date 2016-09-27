@@ -9,9 +9,9 @@ library(lubridate)
 library(rvest)
 library(stringr)
 
-#dir = "D:/Webscrape/webscrape"
-dir = getwd()
-setwd(getwd())
+dir = "C:/Users/Windows/Dropbox/DEPOCEN/Scrape/webscrape"
+#dir = getwd()
+setwd(dir)
 ##########################
 #####  Vnexpress    ######
 ##########################
@@ -63,11 +63,12 @@ clean_date = function (date) {
 }
 
 # Read article's content
-read_page = function(start_date, end_date, link, content_selector, date_selector) {
+read_page = function(start_date, end_date, link, title, content_selector, date_selector) {
   result = c()
   stop = 0
   for (i in c(1:length(link))) {
     url = as.character(link[i])
+    tit = as.character(title[i])
     # try catch to avoid timeout error
     ok <- FALSE
     counter <- 0
@@ -99,7 +100,7 @@ read_page = function(start_date, end_date, link, content_selector, date_selector
         stop = 1 #signal to stop outside loop
         break
       }
-      result = rbind(result,data.frame(ar_date,paragraph))
+      result = rbind(result,data.frame(url,tit,ar_date,paragraph))
     }
   }
   return(list(result,stop))
@@ -151,9 +152,10 @@ for (j in c(1:nrow(cm_list))) {
     if (link_list_result[1]!=1) {
       link_table=link_list_result[[2]]
       link = link_table$article_link
-      content = read_page(start_date, end_date, link, content_selector, date_selector)
-      sum_table = cbind(link_table[1:nrow(content[[1]]),],content[[1]])
-      final = rbind(final, sum_table)
+      title = link_table$article_title 
+      content = read_page(start_date, end_date, link, title, 
+                          content_selector, date_selector)
+      final = rbind(final, content[[1]])
       if (content[[2]] == 1) {
         break
       } else {i=i+1}
