@@ -134,7 +134,7 @@ linkcm = c("http://thanhnien.vn/thoi-su/date/trang-",
            "http://thanhnien.vn/van-hoa/date/trang-")
 cm_list = data.frame(tencm,linkcm)
 rm(tencm,linkcm)
-for (j in c(4:nrow(cm_list))) {
+for (j in c(1:nrow(cm_list))) {
   #Parameters
   code = cm_list$tencm[j]
   source = cm_list$linkcm[j]
