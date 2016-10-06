@@ -10,7 +10,7 @@ library(rvest)
 library(stringr)
 
 
-dir = "C:/Users/Windows/Dropbox/DEPOCEN/Scrape"
+dir = "D:/Webscrape/webscrape"
 #dir = getwd()
 setwd(dir)
 ##########################
@@ -156,7 +156,7 @@ linkcm = c("http://vnexpress.net/tin-tuc/phap-luat/page/",
            "http://vnexpress.net/tin-tuc/cong-dong/page/")
 cm_list = data.frame(tencm,linkcm)
 rm(tencm,linkcm)
-for (j in c(1:nrow(cm_list))) {
+for (j in c(1:2)) {
   #Parameters
   code = cm_list$tencm[j]
   source = cm_list$linkcm[j]
@@ -229,14 +229,15 @@ for (j in c(1:nrow(cm_list))) {
         final[["content"]][a] <- as.character(page[[3]])
       }
       # 50 bai thi save 1 lan
-      if (save_count == 50) {
+      if (save_count == 500) {
+        cat("Saving...\n")
         assign(paste("final",k,sep=""), final)
         save_list_csv(final,save_dir,code,col_names,suffix = paste("(",k,")",sep=""))
         save_count = 1
       } else {save_count = save_count + 1}
     }
     # Check xem bai cuoi cung da vuot qua gioi han thoi gian chua
-    last_date = final[["date"]][max(which(!is.na(final[["date"]])))]
+    last_date = as_date(as.integer(final[["date"]][max(which(!is.na(final[["date"]])))]))
     if (last_date < start_date) {
       ok = FALSE
       message("Done scraping with specified time rage")
