@@ -156,7 +156,7 @@ linkcm = c("http://vnexpress.net/tin-tuc/phap-luat/page/",
            "http://vnexpress.net/tin-tuc/cong-dong/page/")
 cm_list = data.frame(tencm,linkcm)
 rm(tencm,linkcm)
-for (j in c(3:nrow(cm_list))) {
+for (j in c(1:nrow(cm_list))) {
   #Parameters
   code = cm_list$tencm[j]
   source = cm_list$linkcm[j]
@@ -178,7 +178,7 @@ for (j in c(3:nrow(cm_list))) {
   i = 1
   while (ok) {
     # Scrape loop
-    temp = rep(NA, 100)
+    temp = rep(NA, 1000)
     final = list(link = temp, title = temp, date = temp, content = temp)
     col_names = c("link", "title", "date", "content")
     rm(temp)
