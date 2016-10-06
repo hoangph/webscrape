@@ -156,7 +156,7 @@ linkcm = c("http://vnexpress.net/tin-tuc/phap-luat/page/",
            "http://vnexpress.net/tin-tuc/cong-dong/page/")
 cm_list = data.frame(tencm,linkcm)
 rm(tencm,linkcm)
-for (j in c(5:nrow(cm_list))) {
+for (j in c(3:nrow(cm_list))) {
   #Parameters
   code = cm_list$tencm[j]
   source = cm_list$linkcm[j]
@@ -184,16 +184,30 @@ for (j in c(5:nrow(cm_list))) {
     rm(temp)
     
     # Lay 10.000 link trong chuyen muc mot luc
+    skipped = c()
     while (sum(is.na(final[["link"]])) > 0) {
       cat("Looking into page", i," section: ", as.character(code),"\n")
       link_list_result = source %>% paste(i,source_suffix,sep = "") %>% 
         get_article(article_selector)
       if (link_list_result[1]==1) {
         message("Skipped page ", i)
+        skipped = c(skipped, i)
         i = i+1
       } else {
         link = link_list_result[[2]] 
+        # Sua loi link bi lap lai
+        link = unique(link)
         title = link_list_result[[3]]
+        # Sua loi title bi lap lai + \n
+        title = unique(title)
+        title = title[-which(str_sub(as.character(unique(title)),1,3)=="\n  ")]
+        if (length(link) != length(title)) {
+          message("Error link and title mismatched, skipped page") 
+          skipped = c(skipped, i)
+          i = i + 1
+          next
+        }
+        # Dien vao list link
         final = list_fill(list = final, vector = link, index = "link") %>% 
           list_fill(vector = title, index = "title")
         i = i+1
