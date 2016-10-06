@@ -161,7 +161,7 @@ for (j in c(1:2)) {
   code = cm_list$tencm[j]
   source = cm_list$linkcm[j]
   source_suffix = ".html"
-  start_date = today() - 3 #clean_date("01/01/2015") 
+  start_date = clean_date("01/01/2015") 
   end_date = today()
   content_selector = ".short_intro , .Normal"
   date_selector = ".block_timer"
@@ -237,12 +237,12 @@ for (j in c(1:2)) {
       } else {save_count = save_count + 1}
     }
     # Check xem bai cuoi cung da vuot qua gioi han thoi gian chua
-    last_date = as_date(as.integer(final[["date"]][max(which(!is.na(final[["date"]])))]))
+    last_date = as_date(as.integer(final[["date"]][max(which(!is.na(final[["date"]]))&final[["date"]]!="error")]))
     if (last_date < start_date) {
       ok = FALSE
       message("Done scraping with specified time rage")
     } else {
       k = k + 1
-      }
+    }
   }
 }
