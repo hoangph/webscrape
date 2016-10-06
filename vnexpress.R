@@ -156,7 +156,7 @@ linkcm = c("http://vnexpress.net/tin-tuc/phap-luat/page/",
            "http://vnexpress.net/tin-tuc/cong-dong/page/")
 cm_list = data.frame(tencm,linkcm)
 rm(tencm,linkcm)
-for (j in c(1:2)) {
+for (j in c(3:5)) {
   #Parameters
   code = cm_list$tencm[j]
   source = cm_list$linkcm[j]
@@ -178,7 +178,7 @@ for (j in c(1:2)) {
   i = 1
   while (ok) {
     # Scrape loop
-    temp = rep(NA, 1000)
+    temp = rep(NA, 100)
     final = list(link = temp, title = temp, date = temp, content = temp)
     col_names = c("link", "title", "date", "content")
     rm(temp)
@@ -229,7 +229,7 @@ for (j in c(1:2)) {
         final[["content"]][a] <- as.character(page[[3]])
       }
       # 50 bai thi save 1 lan
-      if (save_count == 500) {
+      if (save_count == floor(article_no/2)) {
         cat("Saving...\n")
         assign(paste("final",k,sep=""), final)
         save_list_csv(final,save_dir,code,col_names,suffix = paste("(",k,")",sep=""))
@@ -242,6 +242,7 @@ for (j in c(1:2)) {
       ok = FALSE
       message("Done scraping with specified time rage")
     } else {
+      assign(paste("final",k,sep=""), final)
       k = k + 1
     }
   }
