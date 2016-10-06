@@ -195,10 +195,10 @@ for (j in c(1:nrow(cm_list))) {
         i = i+1
       } else {
         link = link_list_result[[2]] 
+        title = link_list_result[[3]]
         # Sua loi link bi lap lai
         index_rm = which(str_sub(as.character(title),1,3) %in% "\n  " )
         link = link[-index_rm]
-        title = link_list_result[[3]]
         title = title[-index_rm]
         if (length(link) != length(title)) {
           message("Error link and title mismatched, skipped page") 
