@@ -156,7 +156,7 @@ linkcm = c("http://vnexpress.net/tin-tuc/phap-luat/page/",
            "http://vnexpress.net/tin-tuc/cong-dong/page/")
 cm_list = data.frame(tencm,linkcm)
 rm(tencm,linkcm)
-for (j in c(1:3)) {
+for (j in c(2:3)) {
   #Parameters
   code = cm_list$tencm[j]
   source = cm_list$linkcm[j]
@@ -241,6 +241,7 @@ for (j in c(1:3)) {
     if (last_date < start_date) {
       ok = FALSE
       message("Done scraping with specified time range")
+      save_list_csv(final,save_dir,code,col_names,suffix = paste("(",k,")",sep=""))
     } else {
       assign(paste("final",k,sep=""), final)
       save_list_csv(final,save_dir,code,col_names,suffix = paste("(",k,")",sep=""))
