@@ -1,8 +1,8 @@
-################################################
+################################################-
 #####  Web scraping 
 #####  written for DEPOCEN 
 #####  by Hoang Phan. September 2016 
-################################################
+################################################-
 library(tidyverse)
 library(Rfacebook)
 library(lubridate)
@@ -13,13 +13,13 @@ library(stringr)
 dir = "D:/Webscrape/webscrape"
 #dir = getwd()
 setwd(dir)
-##########################
+##########################-
 #####  Vnexpress    ######
-##########################
+##########################-
 
-##############################################
+##############################################-
 ####### __General Purpose Functions ##########
-##############################################
+##############################################-
 
 # Try read HTML function
 # Try multiple times if errors happen
@@ -28,7 +28,7 @@ tryRead = function (url, times, seconds) {
   counter <- 0
   while (ok == FALSE & counter <= times) { 
     counter <- counter + 1
-    html <- tryCatch({                  
+    html <- tryCatch({
       read_html(url)
     },
     error = function(e) {
@@ -118,7 +118,9 @@ save_list_csv = function (list, save_dir, code, col_names, suffix) {
 
 list_fill = function(list, vector, index) {
   vacancy = min(which(is.na(list[[index]])))
-  list[[index]][vacancy:(vacancy+length(vector)-1)] <- vector
+  if (length(vector) != 0){
+    list[[index]][vacancy:(vacancy+length(vector)-1)] <- vector
+  }
   return(list)
 }
 
@@ -156,12 +158,12 @@ linkcm = c("http://vnexpress.net/tin-tuc/phap-luat/page/",
            "http://vnexpress.net/tin-tuc/cong-dong/page/")
 cm_list = data.frame(tencm,linkcm)
 rm(tencm,linkcm)
-for (j in c(2:3)) {
+for (j in c(1:nrow(cm_list))) {
   #Parameters
-  code = cm_list$tencm[j]
+  code = as.character(cm_list$tencm[j])
   source = cm_list$linkcm[j]
   source_suffix = ".html"
-  start_date = clean_date("01/01/2015") 
+  start_date = clean_date("01/01/2006")
   end_date = today()
   content_selector = ".short_intro , .Normal"
   date_selector = ".block_timer"
@@ -169,10 +171,12 @@ for (j in c(2:3)) {
   # Save directory
   save_dir = paste(dir,"/vnexpress",sep="")
   
+  # Check xem chuyen muc da scrape chua
+  # NOTE: can file data cu co ten giong vs ten chuyen muc 
+  scraped = 0
+  if (sum(str_detect(ls(), pattern = as.character(code)) > 0)) { scraped = 1 }
   
-  #final = read_csv(list.files()[1])
-  
-  # Vong lap de lay link
+  #_____Vong lap de lay link####
   k = 1
   ok = TRUE
   i = 1
@@ -183,7 +187,7 @@ for (j in c(2:3)) {
     col_names = c("link", "title", "date", "content")
     rm(temp)
     
-    # Lay 10.000 link trong chuyen muc mot luc
+    # Lay 1.000 link trong chuyen muc mot luc
     skipped = c()
     while (sum(is.na(final[["link"]])) > 0) {
       cat("Looking into page", i," section: ", as.character(code),"\n")
@@ -208,6 +212,14 @@ for (j in c(2:3)) {
           i = i + 1
           next
         }
+        # Check xem link da scrape tu truoc chua ####
+        if (scraped==1) {
+          index_get = which(is.na(match(link, get(code)$link)))
+          link = link[index_get]
+          title = title[index_get]
+          rm(index_get)
+        }
+        
         # Dien vao list link
         final = list_fill(list = final, vector = link, index = "link") %>% 
           list_fill(vector = title, index = "title")
@@ -215,7 +227,7 @@ for (j in c(2:3)) {
       }
     }
     
-    # Doc cac bai trong list link vua lay
+    #_____Doc cac bai trong list link vua lay ####
     article_no = length(final[["link"]])
     save_count = 1
     for (a in c(1:article_no)) {
@@ -249,3 +261,35 @@ for (j in c(2:3)) {
     }
   }
 }
+
+
+#___ Merge files####
+while (FALSE) {
+  text = c()
+  for (i in c(1:length(list.files()))) {
+    message(i,"/",length(list.files()))
+    table = read_csv(list.files()[i])
+    code = str_split(list.files()[i],"_")[[1]][1]
+    table$cm = rep(code, nrow(table))
+    text = rbind(text, table)
+  }
+  colnames(text) = c("link", "title", "date", "content", "category")
+  # xoa nhung link bi lap lai
+  text_uniq = text[!duplicated(text$link),]
+  text_uniq$date = as_date(as.integer(text_uniq$date))
+  rm(text, table)
+  # Xem date
+  message("min date: ", min(text_uniq$date[!is.na(text_uniq$date)]))
+  message("max date: ", max(text_uniq$date[!is.na(text_uniq$date)]))
+  # Luu lai thanh 1 file
+  write_excel_csv(text_uniq, paste(dir,"/vnexpress/finalData/vnexpress.csv",sep=""))
+  # Tach file theo chuyen muc
+  cm = unique(text_uniq$category)
+  for (i in c(1:length(cm))) {
+    data = filter(text_uniq, category == cm[i])
+    assign(cm[i], data)
+  }
+  rm(data)
+}
+
+
