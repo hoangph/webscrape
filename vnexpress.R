@@ -148,6 +148,51 @@ while (0) {
   print(now()-time)
 }
 
+
+#___ Merge files cu  ####
+while (FALSE) {
+  text = c()
+  for (i in c(1:length(list.files()))) {
+    message(i,"/",length(list.files()))
+    table = read_csv(list.files()[i])
+    code = str_split(list.files()[i],"_")[[1]][1]
+    table$cm = rep(code, nrow(table))
+    text = rbind(text, table)
+  }
+  colnames(text) = c("link", "title", "date", "content", "category")
+  # xoa nhung link bi lap lai
+  text_uniq = text[!duplicated(text$link),]
+  text_uniq$date = as_date(as.integer(text_uniq$date))
+  rm(text, table)
+  # Xem date
+  message("min date: ", min(text_uniq$date[!is.na(text_uniq$date)]))
+  message("max date: ", max(text_uniq$date[!is.na(text_uniq$date)]))
+  # Luu lai thanh 1 file
+  # write_excel_csv(text_uniq, paste(dir,"/vnexpress/finalData/vnexpress.csv",sep=""))
+  # Tach file theo chuyen muc
+  cm = unique(text_uniq$category)
+  for (i in c(1:length(cm))) {
+    data = filter(text_uniq, category == cm[i])
+    assign(cm[i], data)
+  }
+  rm(data)
+}
+
+#___ Goi file sau khi da merge  ####
+while (FALSE) {
+  setwd(paste(dir,"/vnexpress/finalData",sep=""))
+  text_uniq = read_csv("vnexpress.csv")
+  colnames(text_uniq) = c("link", "title", "date", "content", "category")
+  text_uniq$date = as_date(as.integer(text_uniq$date))
+  cm = unique(text_uniq$category)
+  for (i in c(1:length(cm))) {
+    data = filter(text_uniq, category == cm[i])
+    assign(cm[i], data)
+  }
+  rm(data)
+}
+rm(text_uniq)
+
 # ___Scrape cac chuyen muc####
 
 tencm = c("phapluat","thoisu","kinhdoanh","giaoduc","congdong")
@@ -260,36 +305,6 @@ for (j in c(1:nrow(cm_list))) {
       k = k + 1
     }
   }
-}
-
-
-#___ Merge files####
-while (FALSE) {
-  text = c()
-  for (i in c(1:length(list.files()))) {
-    message(i,"/",length(list.files()))
-    table = read_csv(list.files()[i])
-    code = str_split(list.files()[i],"_")[[1]][1]
-    table$cm = rep(code, nrow(table))
-    text = rbind(text, table)
-  }
-  colnames(text) = c("link", "title", "date", "content", "category")
-  # xoa nhung link bi lap lai
-  text_uniq = text[!duplicated(text$link),]
-  text_uniq$date = as_date(as.integer(text_uniq$date))
-  rm(text, table)
-  # Xem date
-  message("min date: ", min(text_uniq$date[!is.na(text_uniq$date)]))
-  message("max date: ", max(text_uniq$date[!is.na(text_uniq$date)]))
-  # Luu lai thanh 1 file
-  write_excel_csv(text_uniq, paste(dir,"/vnexpress/finalData/vnexpress.csv",sep=""))
-  # Tach file theo chuyen muc
-  cm = unique(text_uniq$category)
-  for (i in c(1:length(cm))) {
-    data = filter(text_uniq, category == cm[i])
-    assign(cm[i], data)
-  }
-  rm(data)
 }
 
 
