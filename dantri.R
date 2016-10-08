@@ -1,31 +1,70 @@
-################################################
+################################################-
 #####  Web scraping 
 #####  written for DEPOCEN 
 #####  by Hoang Phan. September 2016 
-################################################
+################################################-
 library(tidyverse)
 library(Rfacebook)
 library(lubridate)
 library(rvest)
 library(stringr)
 
-dir = getwd()
-setwd(dir)
-##########################
-#######  Dantri    #######
-##########################
 
-############################
-####### __Functions ##########
-############################
+dir = "D:/Webscrape/webscrape"
+
+#dir = getwd()
+setwd(dir)
+##############################-
+#####  Dantri.com.vn    ######
+##############################-
+
+##############################################-
+####### __General Purpose Functions ##########
+##############################################-
+
+# Try read HTML function
+# Try multiple times if errors happen
+tryRead = function (url, times, seconds) {
+  ok <- FALSE
+  counter <- 0
+  while (ok == FALSE & counter <= times) { 
+    counter <- counter + 1
+    html <- tryCatch({
+      read_html(url)
+    },
+    error = function(e) {
+      Sys.sleep(seconds)
+      e
+    }
+    )
+    if ("error" %in% class(html)) {
+      cat(".")
+    } else {
+      ok <- TRUE
+      message(" Done.")
+    }
+  }
+  if ("error" %in% class(html)) {
+    return(list(1, 1))
+  } else {
+    return(list(0, html))
+  }
+}
 
 # Get articles' link and title in one page
 get_article = function(url, article_selector) {
-  html = read_html(url)
-  article = html %>% html_nodes(article_selector) 
-  article_link = article %>% html_attr("href")
-  article_title = article %>% html_text()
-  return(data.frame(article_link, article_title))
+  errorPage = 1
+  page_html = tryRead(url, 20, 5)
+  if (page_html[[1]] == 1) {
+    errorPage = 1
+    return(list(errorPage, 1, 1))
+  } else {
+    errorPage = 0
+    article = page_html[[2]] %>% html_nodes(article_selector)
+    article_link = article %>% html_attr("href")
+    article_title = article %>% html_text()
+    return(list(errorPage, article_link, article_title))
+  }
 }
 
 # Translate date format from Vietnamese -> R (English)
@@ -36,120 +75,220 @@ clean_date = function (date) {
 }
 
 # Read article's content
-read_page = function(start_date, end_date, link, content_selector, date_selector) {
-  result = c()
-  stop = 0
-  for (i in c(1:length(link))) {
-    url = paste("http://dantri.com.vn",as.character(link[i]),sep="")
-    # try catch to avoid timeout error
-    ok <- FALSE
-    counter <- 0
-    while (ok == FALSE & counter <= 20) { #repeat 20 times
-      counter <- counter + 1
-      html <- tryCatch({                  
-        read_html(url)
-      },
-      error = function(e) {
-        Sys.sleep(5)
-        e
-      }
-      )
-      if ("error" %in% class(html)) {
-        message(".")
-      } else {
-        ok <- TRUE
-        cat(" Done.")
-      }
-    }
-    ar_date = html %>% html_nodes(date_selector) %>% html_text()%>%
+read_page = function(url, content_selector, date_selector) {
+  errorPage = 1
+  cat("Scraping: ", url,"\n")
+  # try catch to avoid timeout error
+  page_html = tryRead(url, 10, 5)
+  if (page_html[[1]] == 1) {
+    errorPage = 1
+    return(list(errorPage, 1, 1))
+  } else {
+    ar_date = page_html[[2]] %>% html_nodes(date_selector) %>% html_text()%>%
       paste(collapse = "") %>% clean_date()
-    message("Scraping date: ", ar_date, ", link: ", url)
-    if (!is.na(ar_date)) {
-      if (ar_date >= start_date & ar_date <= end_date) { #get articles in the time range
-        paragraph = html %>% html_nodes(content_selector) %>% 
-          html_text() %>% paste(collapse = " ")
-      } else {
-        stop = 1 #signal to stop outside loop
-        break
-      }
-      result = rbind(result,data.frame(ar_date,paragraph))
+    if (is.na(ar_date)) {  # If there is no date in the article -> wrong format -> skip
+      message("Skipped.")
+      errorPage = 1
+      return(list(errorPage, 1, 1))
+    } else {
+      message("Date: ", ar_date)
+      paragraph = page_html[[2]] %>% html_nodes(content_selector) %>% 
+        html_text() %>% paste(collapse = " ")
+      paragraph = data.frame(ar_date,paragraph)
+      errorPage = 0
+      return(list(errorPage, paragraph$ar_date, paragraph$paragraph))
     }
   }
-  return(list(result,stop))
 }
 
-# Loop for scraping execution
-scrape_news = function (source, source_suffix,
-                        start_date, end_date, content_selector, 
-                        date_selector, link_selector, save_dir) {
-  i = 1
-  output = c()
-  while (1) {
-    message("Scraping page ", i)
-    link_table = source %>% paste(i,source_suffix, sep = "") %>% 
-      get_article(article_selector)
-    link = link_table$article_link
-    content = read_page(start_date, end_date, link, content_selector, date_selector)
-    sum_table = cbind(link_table[1:nrow(content[[1]]),],content[[1]])
-    output = rbind(output, sum_table)
-    if (content[[2]] == 1) {
-      break
-    } else {i=i+1}
-    save(output, save_dir)
-  }
-  #Save
-  return(output)
-}
-
-save = function(file, save_dir) {
+save_list_csv = function (list, save_dir, code, col_names, suffix) {
   setwd(save_dir)
-  write_excel_csv(as.data.frame(file), 
-                  paste(as.character(today()),
-                        as.character(start_date),
-                        as.character(end_date),".csv",sep = "_"))
+  max_length = length(list[[1]])
+  for (i in c(2:length(list))) {
+    if (length(list[[i]]) > max_length) {max_length = length(list[[i]])}
+  }
+  file = data.frame(index = rep(NA,max_length))
+  for (i in c(1:length(list)))  {
+    col = c(list[[col_names[i]]], rep(NA, max_length - length(list[[i]])))
+    file = cbind(file, col)
+  }
+  file = file[,-1]
+  colnames(file) <- col_names
+  write_excel_csv(file,paste(code,as.character(today()),suffix,".csv", sep = "_"))
 }
 
-##############################
+list_fill = function(list, vector, index) {
+  vacancy = min(which(is.na(list[[index]])))
+  if (length(vector) != 0){
+    list[[index]][vacancy:(vacancy+length(vector)-1)] <- vector
+  }
+  return(list)
+}
+
+##############################-
 ####### __Execution ##########
-##############################
+##############################-
 
-# ___Scrape chuyen muc xa hoi####
-# Parameter
-source = "http://dantri.com.vn/xa-hoi/trang-"
-source_suffix = ".htm"
-start_date = today() #clean_date("01/01/2015")
-end_date = today()
-content_selector = "#divNewsContent p"
-date_selector = ".tt-capitalize"
-article_selector = "h2 a"
-# Save directory
-save_dir = paste(dir,"/dantri",sep="")
-
-#Call function
-#Parameters required: 
-#   source, source_suffix, start_date, end_date, content_selector, 
-#   date_selector, link_selector
-#timestart = now()
-#final = scrape_news(source, source_suffix, start_date, end_date, content_selector, 
-#            date_selector, link_selector, save_dir)
-#print(now()-timestart)
-
-#For loop (no function)
-i = 1
-#final = c()
-while (1) {
-  cat("Scraping page", i)
-  link_table = source %>% paste(i,source_suffix, sep = "") %>% 
-    get_article(article_selector)
-  link = link_table$article_link
-  content = read_page(start_date, end_date, link, content_selector, date_selector)
-  sum_table = cbind(link_table[1:nrow(content[[1]]),],content[[1]])
-  final = rbind(final, sum_table)
-  if (content[[2]] == 1) {
-    break
-  } else {i=i+1}
-  save(final, save_dir)
+#___ Merge files cu  ####
+while (FALSE) {
+  text = c()
+  for (i in c(1:length(list.files()))) {
+    message(i,"/",length(list.files()))
+    table = read_csv(list.files()[i])
+    code = str_split(list.files()[i],"_")[[1]][1]
+    table$cm = rep(code, nrow(table))
+    text = rbind(text, table)
+  }
+  colnames(text) = c("link", "title", "date", "content", "category")
+  # xoa nhung link bi lap lai
+  text_uniq = text[!duplicated(text$link),]
+  text_uniq$date = as_date(as.integer(text_uniq$date))
+  rm(text, table)
+  # Xem date
+  message("min date: ", min(text_uniq$date[!is.na(text_uniq$date)]))
+  message("max date: ", max(text_uniq$date[!is.na(text_uniq$date)]))
+  # Tach file theo chuyen muc
+  cm = unique(text_uniq$category)
+  for (i in c(1:length(cm))) {
+    data = filter(text_uniq, category == cm[i])
+    assign(cm[i], data)
+  }
+  rm(data)
 }
 
-#Save
-#write_excel_csv(final,paste("final",today(),".csv",sep=""))
+#___ Goi file sau khi da merge  ####
+while (FALSE) {
+  setwd(paste(dir,"/dantri/finalData",sep=""))
+  text_uniq = read_csv("dantri.csv")
+  colnames(text_uniq) = c("link", "title", "date", "content", "category")
+  text_uniq$date = as_date(as.integer(text_uniq$date))
+  cm = unique(text_uniq$category)
+  for (i in c(1:length(cm))) {
+    data = filter(text_uniq, category == cm[i])
+    assign(cm[i], data)
+  }
+  rm(data)
+  rm(text_uniq)
+}
+
+
+# ___Scrape cac chuyen muc####
+tencm = c("sukien", "xahoi","giaoduc","kinhdoanh","vanhoa","phapluat","nhipsongtre","suckhoe")
+linkcm = c("http://dantri.com.vn/su-kien/trang-",
+           "http://dantri.com.vn/xa-hoi/trang-",
+           "http://dantri.com.vn/giao-duc-khuyen-hoc/trang-",
+           "http://dantri.com.vn/kinh-doanh/trang-",
+           "http://dantri.com.vn/van-hoa/trang-",
+           "http://dantri.com.vn/phap-luat/trang-",
+           "http://dantri.com.vn/nhip-song-tre/trang-",
+           "http://dantri.com.vn/suc-khoe/trang-")
+cm_list = data.frame(tencm,linkcm)
+rm(tencm,linkcm)
+for (j in c(1:nrow(cm_list))) {
+  #Parameters
+  code = as.character(cm_list$tencm[j])
+  source = cm_list$linkcm[j]
+  source_suffix = ".htm"
+  start_date = today() #clean_date("01/01/2006")
+  end_date = today()
+  content_selector = "#divNewsContent p"
+  date_selector = ".tt-capitalize"
+  article_selector = ".fon6"
+  # Save directory
+  save_dir = paste(dir,"/dantri",sep="")
+  
+  # Check xem chuyen muc da scrape chua
+  # NOTE: can file data cu co ten giong vs ten chuyen muc 
+  scraped = 0
+  if (sum(str_detect(ls(), pattern = as.character(code)) > 0)) { scraped = 1 }
+  
+  #_____Vong lap de lay link####
+  k = 1
+  ok = TRUE
+  i = 1
+  while (ok) {
+    # Scrape loop
+    temp = rep(NA, 10)
+    final = list(link = temp, title = temp, date = temp, content = temp)
+    col_names = c("link", "title", "date", "content")
+    rm(temp)
+    
+    # Lay 1.000 link trong chuyen muc mot luc
+    skipped = c()
+    while (sum(is.na(final[["link"]])) > 0) {
+      cat("Looking into page", i," section: ", as.character(code),"\n")
+      link_list_result = source %>% paste(i,source_suffix,sep = "") %>% 
+        get_article(article_selector)
+      if (link_list_result[1]==1) {
+        message("Skipped page ", i)
+        skipped = c(skipped, i)
+        i = i+1
+      } else {
+        link = link_list_result[[2]]
+        link = paste("http://dantri.com.vn",link,sep="")
+        title = link_list_result[[3]]
+        # Sua loi link bi lap lai
+        index_rm = which(str_sub(as.character(title),1,3) %in% "\n  " )
+        if (length(index_rm) > 0) {
+          link = link[-index_rm]
+          title = title[-index_rm]
+        }
+        if (length(link) != length(title)) {
+          message("Error link and title mismatched, skipped page") 
+          skipped = c(skipped, i)
+          i = i + 1
+          next
+        }
+        # Check xem link da scrape tu truoc chua ####
+        if (scraped==1) {
+          index_get = which(is.na(match(link, get(code)$link)))
+          link = link[index_get]
+          title = title[index_get]
+          rm(index_get)
+        }
+        
+        # Dien vao list link
+        final = list_fill(list = final, vector = link, index = "link") %>% 
+          list_fill(vector = title, index = "title")
+        i = i+1
+      }
+    }
+    
+    #_____Doc cac bai trong list link vua lay ####
+    article_no = length(final[["link"]])
+    save_count = 1
+    for (a in c(1:article_no)) {
+      url = final[["link"]][a]
+      page = read_page(url, content_selector, date_selector)
+      if (page[[1]] == 1) {
+        final[["date"]][a]    <- "error"
+        final[["content"]][a] <- "error"
+      } else {
+        final[["date"]][a]    <- as_date(page[[2]])
+        final[["content"]][a] <- as.character(page[[3]])
+      }
+      # 50 bai thi save 1 lan
+      if (save_count == ceiling(article_no/2)) {
+        cat("Saving...\n")
+        assign(paste("final",k,sep=""), final)
+        save_list_csv(final,save_dir,code,col_names,suffix = paste("(",k,")",sep=""))
+        save_count = 1
+      } else {save_count = save_count + 1}
+    }
+    # Check xem bai cuoi cung da vuot qua gioi han thoi gian chua
+    last_date = as_date(as.integer(final[["date"]][max(which(!is.na(final[["date"]])&final[["date"]]!="error"))]))
+    if (last_date < start_date) {
+      ok = FALSE
+      message("Done scraping with specified time range. Saving...")
+      save_list_csv(final,save_dir,code,col_names,suffix = paste("(",k,")",sep=""))
+    } else {
+      assign(paste("final",k,sep=""), final)
+      cat("Saving...\n")
+      save_list_csv(final,save_dir,code,col_names,suffix = paste("(",k,")",sep=""))
+      k = k + 1
+    }
+  }
+}
+
+
+
