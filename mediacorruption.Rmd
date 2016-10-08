@@ -6,70 +6,67 @@ output:
 
 ---
 
-Dưới đây là kết quả scraping web vnexpress.net (4 chuyên mục bao gồm pháp luật, thời sự, kinh doanh và cộng đồng). Codebook của dự án media corruption được tham khảo để theo dõi sự thay đổi trong thông tin về tham nhũng trên báo mạng.
-
+Dưới đây là kết quả scraping web vnexpress.net (5 chuyên mục bao gồm pháp luật, thời sự, kinh doanh, giáo dục và cộng đồng). Codebook của dự án media corruption được tham khảo để theo dõi sự thay đổi trong thông tin về tham nhũng trên báo mạng.
 
 ```{r include=FALSE}
 library(readr)
 library(stringr)
-setwd("C:/Users/Windows/Dropbox/DEPOCEN/Scrape/webscrape/vnexpress")
-# read the data in
-database = c()
-for (i in c(1:length(list.files()))) {
-  chuyenmuc = str_split(list.files()[i],pattern = "_")[[1]][1]
-  database_sub = read_csv(list.files()[i])
-  database_sub = data.frame(rep(chuyenmuc,nrow(database_sub)),database_sub)
-  database = rbind(database, database_sub)
-}
-rm(database_sub)
-colnames(database) <- c("chuyenmuc","link","title","date","content")
-database = unique(database)
-# Some cleaning
-database$content = str_to_lower(database$content)
+library(lubridate)
+dir = "D:/Webscrape/webscrape"
+
+# read the data
+setwd(paste(dir,"/vnexpress/finalData",sep=""))
+text = read_csv("vnexpress.csv")
+colnames(text) = c("link", "title", "date", "content", "category")
+text$date = as_date(as.integer(text$date))
+cm = unique(text$category)
 
 ```
 
-Đầu tiên search các bài có từ "tham nhũng" hoặc "hối lộ" trong: (1)Tiêu đề; hoặc (2) 2 đoạn văn đầu (đoạn đầu thường là intro của bài báo)
+Ví dụ 1 bài báo:
 ```{r}
-library(plyr)
-first2_real_text = function(text) {
-  text = text[nchar(text)>1]
-  text = text[1:2] %>% paste(collapse="")
-  return(text)
-}
-count_key = function(database,key) {
-  # search in title
-  key_title = str_count(database$title,key)
-  # search in text (first 2 paragraphs)
-  text = database$content %>% str_split(pattern = "\r\n\t") %>%
-    lapply(FUN=first2_real_text)
-  key_text = str_count(text,key)
-  return(list(title=key_title,text=key_text))
-}
-# Keywords counting
-key1 = "tham nhũng"
-key_count1 = count_key(database, key1)
-key2 = "hối lộ"
-key_count2 = count_key(database, key2)
-# Keywords position
-ar_contain1 = which(key_count1[[1]]>0 | key_count1[[2]]>0)
-ar_contain2 = which(key_count2[[1]]>0 | key_count2[[2]]>0)
-ar_contain = union(ar_contain1,ar_contain2)
+message("Link: ",text$link[1])
+cat("\nTieu de: ", text$title[1], "\n\n")
+example = text$content[1]
+example
+```
 
-# Article containing keywords
-ar_contain_tbl = database[ar_contain,]
-
-# No. article containing keywords
-cat("Số bài: ", length(ar_contain),"\n")
-cat("Ví dụ: \n")
-for (i in c(1:5)) {
-  cat(ar_contain_tbl$title[i],"\n")
-  message(ar_contain_tbl$link[i])
+Tách lấy tiêu đề và 2 đoạn văn đầu:
+```{r warning=FALSE}
+# Function de xac dinh 2 doan van dau
+first2_real_text = function(string) {
+  string = str_split(string, "\r\r\n\t")[[1]]
+  string = string[nchar(string)>1]
+  string = string[1:2]
+  return(string)
 }
+# Thuc hien
+two_para = lapply(text$content,FUN = first2_real_text) %>% lapply(FUN=tolower)
 
 ```
+
+Search các bài có từ "tham nhũng" hoặc "hối lộ" trong: (1) Tiêu đề; hoặc (2) 2 đoạn văn đầu (đoạn đầu thường là intro của bài báo).
+
+```{r}
+# Khai bao tu khoa
+key_cor = c("tham nhũng", "hối lộ")
+
+# Xac dinh cac bai co tu khoa trong tieu de
+title = tolower(text$title)
+title_key = str_count(title, paste(key_cor,collapse="|"))
+
+# Xac dinh cac bai co tu khoa trong 2 doan van dau
+para_key = str_count(two_para, paste(key_cor,collapse="|"))
+
+# Tong hop ket qua 
+contain_key = title_key + para_key
+article_cor = text[which(contain_key>0),]
+article_cor$title
+
+
+```
+
 
 
 Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
-
 When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).

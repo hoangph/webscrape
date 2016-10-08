@@ -125,9 +125,9 @@ list_fill = function(list, vector, index) {
 }
 
 
-##############################
+##############################-
 ####### __Execution ##########
-##############################
+##############################-
 while (0) {
   a = list(rep(NA,10000), rep(NA, 10000))
   a = list(NA,NA)
@@ -190,8 +190,9 @@ while (FALSE) {
     assign(cm[i], data)
   }
   rm(data)
+  rm(text_uniq)
 }
-rm(text_uniq)
+
 
 # ___Scrape cac chuyen muc####
 
@@ -286,7 +287,7 @@ for (j in c(1:nrow(cm_list))) {
         final[["content"]][a] <- as.character(page[[3]])
       }
       # 50 bai thi save 1 lan
-      if (save_count == floor(article_no/2)) {
+      if (save_count == ceiling(article_no/2)) {
         cat("Saving...\n")
         assign(paste("final",k,sep=""), final)
         save_list_csv(final,save_dir,code,col_names,suffix = paste("(",k,")",sep=""))
@@ -297,10 +298,11 @@ for (j in c(1:nrow(cm_list))) {
     last_date = as_date(as.integer(final[["date"]][max(which(!is.na(final[["date"]])&final[["date"]]!="error"))]))
     if (last_date < start_date) {
       ok = FALSE
-      message("Done scraping with specified time range")
+      message("Done scraping with specified time range. Saving...")
       save_list_csv(final,save_dir,code,col_names,suffix = paste("(",k,")",sep=""))
     } else {
       assign(paste("final",k,sep=""), final)
+      cat("Saving...\n")
       save_list_csv(final,save_dir,code,col_names,suffix = paste("(",k,")",sep=""))
       k = k + 1
     }
