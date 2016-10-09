@@ -165,6 +165,8 @@ while (FALSE) {
   cm = unique(text_uniq$category)
   for (i in c(1:length(cm))) {
     data = filter(text_uniq, category == cm[i])
+    # Giu lai link de so sanh (bo di neu muon lay ca noi dung)
+    data = data[,1]
     assign(cm[i], data)
   }
   rm(data)

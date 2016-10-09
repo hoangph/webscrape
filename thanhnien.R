@@ -181,7 +181,6 @@ while (FALSE) {
     # Giu lai link de so sanh (bo di neu muon lay ca noi dung)
     data = data[,1]
     assign(cm[i], data)
-    assign(cm[i], data)
   }
   rm(data)
   rm(text_uniq)
