@@ -167,13 +167,6 @@ while (FALSE) {
   # Xem date
   message("min date: ", min(text_uniq$date[!is.na(text_uniq$date)]))
   message("max date: ", max(text_uniq$date[!is.na(text_uniq$date)]))
-  # Tach file theo chuyen muc
-  cm = unique(text_uniq$category)
-  for (i in c(1:length(cm))) {
-    data = filter(text_uniq, category == cm[i])
-    assign(cm[i], data)
-  }
-  rm(data)
 }
 
 #___ Goi file sau khi da merge  ####
@@ -185,6 +178,8 @@ while (FALSE) {
   cm = unique(text_uniq$category)
   for (i in c(1:length(cm))) {
     data = filter(text_uniq, category == cm[i])
+    # Giu lai link de so sanh (bo di neu muon lay ca noi dung)
+    data = data[,1]
     assign(cm[i], data)
   }
   rm(data)
