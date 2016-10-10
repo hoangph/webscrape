@@ -168,14 +168,7 @@ while (FALSE) {
   message("min date: ", min(text_uniq$date[!is.na(text_uniq$date)]))
   message("max date: ", max(text_uniq$date[!is.na(text_uniq$date)]))
   # Luu lai thanh 1 file
-  # write_excel_csv(text_uniq, paste(dir,"/vnexpress/finalData/vnexpress.csv",sep=""))
-  # Tach file theo chuyen muc
-  cm = unique(text_uniq$category)
-  for (i in c(1:length(cm))) {
-    data = filter(text_uniq, category == cm[i])
-    assign(cm[i], data)
-  }
-  rm(data)
+  write_excel_csv(text_uniq, paste(dir,"/vnexpress/finalData/vnexpress.csv",sep=""))
 }
 
 #___ Goi file sau khi da merge  ####
@@ -230,12 +223,12 @@ for (j in c(1:nrow(cm_list))) {
   i = 1
   while (ok) {
     # Scrape loop
-    temp = rep(NA, 1000)
+    temp = rep(NA, 100)
     final = list(link = temp, title = temp, date = temp, content = temp)
     col_names = c("link", "title", "date", "content")
     rm(temp)
     
-    # Lay 1.000 link trong chuyen muc mot luc
+    # Lay 1.00 link trong chuyen muc mot luc
     skipped = c()
     while (sum(is.na(final[["link"]])) > 0) {
       cat("Looking into page", i," section: ", as.character(code),"\n")
@@ -288,7 +281,7 @@ for (j in c(1:nrow(cm_list))) {
         final[["date"]][a]    <- as_date(page[[2]])
         final[["content"]][a] <- as.character(page[[3]])
       }
-      # 50 bai thi save 1 lan
+      # 1/2 file thi save 1 lan
       if (save_count == ceiling(article_no/2)) {
         cat("Saving...\n")
         assign(paste("final",k,sep=""), final)
@@ -310,5 +303,6 @@ for (j in c(1:nrow(cm_list))) {
     }
   }
 }
+
 
 
