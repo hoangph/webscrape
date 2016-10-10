@@ -191,7 +191,7 @@ for (j in c(1:nrow(cm_list))) {
   code = as.character(cm_list$tencm[j])
   source = cm_list$linkcm[j]
   source_suffix = ".htm"
-  start_date = today() #clean_date("01/01/2006")
+  start_date = clean_date("01/01/2006")
   end_date = today()
   content_selector = "#divNewsContent p"
   date_selector = ".tt-capitalize"
@@ -210,7 +210,7 @@ for (j in c(1:nrow(cm_list))) {
   i = 1
   while (ok) {
     # Scrape loop
-    temp = rep(NA, 10)
+    temp = rep(NA, 1000)
     final = list(link = temp, title = temp, date = temp, content = temp)
     col_names = c("link", "title", "date", "content")
     rm(temp)
