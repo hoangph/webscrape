@@ -147,13 +147,6 @@ while (FALSE) {
   # Xem date
   message("min date: ", min(text_uniq$date[!is.na(text_uniq$date)]))
   message("max date: ", max(text_uniq$date[!is.na(text_uniq$date)]))
-  # Tach file theo chuyen muc
-  cm = unique(text_uniq$category)
-  for (i in c(1:length(cm))) {
-    data = filter(text_uniq, category == cm[i])
-    assign(cm[i], data)
-  }
-  rm(data)
 }
 
 #___ Goi file sau khi da merge  ####
@@ -210,12 +203,12 @@ for (j in c(1:nrow(cm_list))) {
   i = 1
   while (ok) {
     # Scrape loop
-    temp = rep(NA, 1000)
+    temp = rep(NA, 200)
     final = list(link = temp, title = temp, date = temp, content = temp)
     col_names = c("link", "title", "date", "content")
     rm(temp)
     
-    # Lay 1.000 link trong chuyen muc mot luc
+    # Lay 200 link trong chuyen muc mot luc
     skipped = c()
     while (sum(is.na(final[["link"]])) > 0) {
       cat("Looking into page", i," section: ", as.character(code),"\n")
@@ -272,9 +265,9 @@ for (j in c(1:nrow(cm_list))) {
       # 50 bai thi save 1 lan
       if (save_count == ceiling(article_no/2)) {
         cat("Saving...\n")
-        assign(paste("final",k,sep=""), final)
+        #assign(paste("final",k,sep=""), final)
         save_list_csv(final,save_dir,code,col_names,suffix = paste("(",k,")",sep=""))
-        save_count = 1
+        save_count = save_count + 1
       } else {save_count = save_count + 1}
     }
     # Check xem bai cuoi cung da vuot qua gioi han thoi gian chua
@@ -284,7 +277,7 @@ for (j in c(1:nrow(cm_list))) {
       message("Done scraping with specified time range. Saving...")
       save_list_csv(final,save_dir,code,col_names,suffix = paste("(",k,")",sep=""))
     } else {
-      assign(paste("final",k,sep=""), final)
+      #assign(paste("final",k,sep=""), final)
       cat("Saving...\n")
       save_list_csv(final,save_dir,code,col_names,suffix = paste("(",k,")",sep=""))
       k = k + 1
