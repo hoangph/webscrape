@@ -172,7 +172,7 @@ while (FALSE) {
 #___ Goi file sau khi da merge  ####
 while (FALSE) {
   setwd(paste(dir,"/thanhnien/finalData",sep=""))
-  text_uniq = read_csv("thanhnien.csv")
+  text_uniq = read_csv("thanhnien(1).csv")
   colnames(text_uniq) = c("link", "title", "date", "content", "category")
   text_uniq$date = as_date(as.integer(text_uniq$date))
   cm = unique(text_uniq$category)
@@ -289,9 +289,9 @@ for (j in c(1:nrow(cm_list))) {
       # 50 bai thi save 1 lan
       if (save_count == ceiling(article_no/2)) {
         cat("Saving...\n")
-        assign(paste("final",k,sep=""), final)
+        #assign(paste("final",k,sep=""), final)
         save_list_csv(final,save_dir,code,col_names,suffix = paste("(",k,")",sep=""))
-        save_count = 1
+        save_count = save_count + 1
       } else {save_count = save_count + 1}
     }
     # Check xem bai cuoi cung da vuot qua gioi han thoi gian chua
@@ -301,7 +301,7 @@ for (j in c(1:nrow(cm_list))) {
       message("Done scraping with specified time range. Saving...")
       save_list_csv(final,save_dir,code,col_names,suffix = paste("(",k,")",sep=""))
     } else {
-      assign(paste("final",k,sep=""), final)
+      #assign(paste("final",k,sep=""), final)
       cat("Saving...\n")
       save_list_csv(final,save_dir,code,col_names,suffix = paste("(",k,")",sep=""))
       k = k + 1
