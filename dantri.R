@@ -179,7 +179,7 @@ linkcm = c("http://dantri.com.vn/su-kien/trang-",
            "http://dantri.com.vn/suc-khoe/trang-")
 cm_list = data.frame(tencm,linkcm)
 rm(tencm,linkcm)
-for (j in c(1:nrow(cm_list))) {
+for (j in c(4:4)) {
   #Parameters
   code = as.character(cm_list$tencm[j])
   source = cm_list$linkcm[j]
@@ -198,9 +198,22 @@ for (j in c(1:nrow(cm_list))) {
   if (sum(str_detect(ls(), pattern = as.character(code)) > 0)) { scraped = 1 }
   
   #_____Vong lap de lay link####
-  k = 1
+  # Starting point
+  file_list = list.files()[which(str_sub(list.files(), 1, str_locate(list.files(),"_")-1)==code)]
+  k_index = str_locate(file_list,pattern = "file")[,1]
+  p_index = str_locate(file_list,pattern = "page")[,1]
+  e_index = str_locate(file_list,pattern = "_.csv")[,1]
+  k_index = str_sub(file_list, k_index+4, p_index-1)
+  p_index = str_sub(file_list, p_index+4, e_index-1)
+  
+  k = max(as.integer(k_index[!is.na(k_index)])) + 1
+  i = max(as.integer(p_index[!is.na(p_index)])) + 1
+  if (k==-Inf) {k = 3}
+  if (i==-Inf) {i = 40}
+  rm(k_index, p_index, e_index)
+  
   ok = TRUE
-  i = 1
+  i = 40
   while (ok) {
     # Scrape loop
     temp = rep(NA, 200)
@@ -266,7 +279,7 @@ for (j in c(1:nrow(cm_list))) {
       if (save_count == ceiling(article_no/2)) {
         cat("Saving...\n")
         #assign(paste("final",k,sep=""), final)
-        save_list_csv(final,save_dir,code,col_names,suffix = paste("(",k,")",sep=""))
+        #save_list_csv(final,save_dir,code,col_names,suffix = paste("file",k,"page",i-1,sep=""))
         save_count = save_count + 1
       } else {save_count = save_count + 1}
     }
@@ -275,12 +288,13 @@ for (j in c(1:nrow(cm_list))) {
     if (last_date < start_date) {
       ok = FALSE
       message("Done scraping with specified time range. Saving...")
-      save_list_csv(final,save_dir,code,col_names,suffix = paste("(",k,")",sep=""))
+      save_list_csv(final,save_dir,code,col_names,suffix = paste("file",k,"page",i-1,sep=""))
     } else {
       #assign(paste("final",k,sep=""), final)
       cat("Saving...\n")
-      save_list_csv(final,save_dir,code,col_names,suffix = paste("(",k,")",sep=""))
+      save_list_csv(final,save_dir,code,col_names,suffix = paste("file",k,"page",i-1,sep=""))
       k = k + 1
+      gc()
     }
   }
 }
