@@ -179,7 +179,7 @@ linkcm = c("http://dantri.com.vn/su-kien/trang-",
            "http://dantri.com.vn/suc-khoe/trang-")
 cm_list = data.frame(tencm,linkcm)
 rm(tencm,linkcm)
-for (j in c(4:4)) {
+for (j in c(3:3)) {
   #Parameters
   code = as.character(cm_list$tencm[j])
   source = cm_list$linkcm[j]
@@ -209,8 +209,8 @@ for (j in c(4:4)) {
   
   k = max(as.integer(k_index[!is.na(k_index)])) + 1
   i = max(as.integer(p_index[!is.na(p_index)])) + 1
-  if (k==-Inf) {k = 3}
-  if (i==-Inf) {i = 40}
+  if (k==-Inf) {k = 69}
+  if (i==-Inf) {i = 1}
   rm(k_index, p_index, e_index)
   
   ok = TRUE
@@ -233,7 +233,7 @@ for (j in c(4:4)) {
         i = i+1
       } else {
         link = link_list_result[[2]]
-        link = paste("http://dantri.com.vn",link,sep="")
+        link[str_sub(link,1,4)!="http"] = paste("http://dantri.com.vn",link[str_sub(link,1,4)!="http"],sep="")
         title = link_list_result[[3]]
         # Sua loi link bi lap lai
         index_rm = which(str_sub(as.character(title),1,3) %in% "\n  " )
@@ -299,5 +299,12 @@ for (j in c(4:4)) {
   }
 }
 
+index = which(str_sub(list.files(),1,str_locate(list.files(),"_")-1)== "giaoduc")
+index = index[!is.na(index)]
+giaoduc = c()
+for (i in c(1:length(index))) {
+  r = read_csv(list.files()[index[i]])
+  giaoduc = rbind(giaoduc, r)
+}
 
 
