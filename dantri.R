@@ -147,13 +147,6 @@ while (FALSE) {
   # Xem date
   message("min date: ", min(text_uniq$date[!is.na(text_uniq$date)]))
   message("max date: ", max(text_uniq$date[!is.na(text_uniq$date)]))
-  # Tach file theo chuyen muc
-  cm = unique(text_uniq$category)
-  for (i in c(1:length(cm))) {
-    data = filter(text_uniq, category == cm[i])
-    assign(cm[i], data)
-  }
-  rm(data)
 }
 
 #___ Goi file sau khi da merge  ####
@@ -186,7 +179,7 @@ linkcm = c("http://dantri.com.vn/su-kien/trang-",
            "http://dantri.com.vn/suc-khoe/trang-")
 cm_list = data.frame(tencm,linkcm)
 rm(tencm,linkcm)
-for (j in c(1:nrow(cm_list))) {
+for (j in c(3:3)) {
   #Parameters
   code = as.character(cm_list$tencm[j])
   source = cm_list$linkcm[j]
@@ -205,17 +198,30 @@ for (j in c(1:nrow(cm_list))) {
   if (sum(str_detect(ls(), pattern = as.character(code)) > 0)) { scraped = 1 }
   
   #_____Vong lap de lay link####
-  k = 1
+  # Starting point
+  setwd(save_dir)
+  file_list = list.files()[which(str_sub(list.files(), 1, str_locate(list.files(),"_")-1)==code)]
+  k_index = str_locate(file_list,pattern = "file")[,1]
+  p_index = str_locate(file_list,pattern = "page")[,1]
+  e_index = str_locate(file_list,pattern = "_.csv")[,1]
+  k_index = str_sub(file_list, k_index+4, p_index-1)
+  p_index = str_sub(file_list, p_index+4, e_index-1)
+  
+  k = max(as.integer(k_index[!is.na(k_index)])) + 1
+  i = max(as.integer(p_index[!is.na(p_index)])) + 1
+  if (k==-Inf) {k = 69}
+  if (i==-Inf) {i = 1}
+  rm(k_index, p_index, e_index)
+  
   ok = TRUE
-  i = 1
   while (ok) {
     # Scrape loop
-    temp = rep(NA, 1000)
+    temp = rep(NA, 200)
     final = list(link = temp, title = temp, date = temp, content = temp)
     col_names = c("link", "title", "date", "content")
     rm(temp)
     
-    # Lay 1.000 link trong chuyen muc mot luc
+    # Lay 200 link trong chuyen muc mot luc
     skipped = c()
     while (sum(is.na(final[["link"]])) > 0) {
       cat("Looking into page", i," section: ", as.character(code),"\n")
@@ -227,7 +233,7 @@ for (j in c(1:nrow(cm_list))) {
         i = i+1
       } else {
         link = link_list_result[[2]]
-        link = paste("http://dantri.com.vn",link,sep="")
+        link[str_sub(link,1,4)!="http"] = paste("http://dantri.com.vn",link[str_sub(link,1,4)!="http"],sep="")
         title = link_list_result[[3]]
         # Sua loi link bi lap lai
         index_rm = which(str_sub(as.character(title),1,3) %in% "\n  " )
@@ -271,10 +277,10 @@ for (j in c(1:nrow(cm_list))) {
       }
       # 50 bai thi save 1 lan
       if (save_count == ceiling(article_no/2)) {
-        cat("Saving...\n")
-        assign(paste("final",k,sep=""), final)
-        save_list_csv(final,save_dir,code,col_names,suffix = paste("(",k,")",sep=""))
-        save_count = 1
+        #cat("Saving...\n")
+        #assign(paste("final",k,sep=""), final)
+        #save_list_csv(final,save_dir,code,col_names,suffix = paste("file",k,"page",i-1,sep=""))
+        save_count = save_count + 1
       } else {save_count = save_count + 1}
     }
     # Check xem bai cuoi cung da vuot qua gioi han thoi gian chua
@@ -282,15 +288,23 @@ for (j in c(1:nrow(cm_list))) {
     if (last_date < start_date) {
       ok = FALSE
       message("Done scraping with specified time range. Saving...")
-      save_list_csv(final,save_dir,code,col_names,suffix = paste("(",k,")",sep=""))
+      save_list_csv(final,save_dir,code,col_names,suffix = paste("file",k,"page",i-1,sep=""))
     } else {
-      assign(paste("final",k,sep=""), final)
+      #assign(paste("final",k,sep=""), final)
       cat("Saving...\n")
-      save_list_csv(final,save_dir,code,col_names,suffix = paste("(",k,")",sep=""))
+      save_list_csv(final,save_dir,code,col_names,suffix = paste("file",k,"page",i-1,sep=""))
       k = k + 1
+      gc()
     }
   }
 }
 
+index = which(str_sub(list.files(),1,str_locate(list.files(),"_")-1)== "giaoduc")
+index = index[!is.na(index)]
+giaoduc = c()
+for (i in c(1:length(index))) {
+  r = read_csv(list.files()[index[i]])
+  giaoduc = rbind(giaoduc, r)
+}
 
 
