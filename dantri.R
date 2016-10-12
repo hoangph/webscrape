@@ -199,6 +199,7 @@ for (j in c(4:4)) {
   
   #_____Vong lap de lay link####
   # Starting point
+  setwd(save_dir)
   file_list = list.files()[which(str_sub(list.files(), 1, str_locate(list.files(),"_")-1)==code)]
   k_index = str_locate(file_list,pattern = "file")[,1]
   p_index = str_locate(file_list,pattern = "page")[,1]
@@ -213,7 +214,6 @@ for (j in c(4:4)) {
   rm(k_index, p_index, e_index)
   
   ok = TRUE
-  i = 40
   while (ok) {
     # Scrape loop
     temp = rep(NA, 200)
@@ -277,7 +277,7 @@ for (j in c(4:4)) {
       }
       # 50 bai thi save 1 lan
       if (save_count == ceiling(article_no/2)) {
-        cat("Saving...\n")
+        #cat("Saving...\n")
         #assign(paste("final",k,sep=""), final)
         #save_list_csv(final,save_dir,code,col_names,suffix = paste("file",k,"page",i-1,sep=""))
         save_count = save_count + 1
