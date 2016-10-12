@@ -20,8 +20,21 @@ link_par = function(site) {
     rm(tencm,linkcm)
   }
   
-  #
+  # Vietnamnet.vn
+  if (site == "vietnamnet") {
+    tencm = c("thoisu","kinhdoanh","giaoduc","phapluat","doisong","bandoc")
+    linkcm = c("http://vietnamnet.vn/vn/thoi-su/trang",
+               "http://vietnamnet.vn/vn/kinh-doanh/trang",
+               "http://vietnamnet.vn/vn/giao-duc/trang",
+               "http://vietnamnet.vn/vn/phap-luat/trang",
+               "http://vietnamnet.vn/vn/doi-song/trang",
+               "http://vietnamnet.vn/vn/ban-doc/trang")
+    cm_list = data.frame(tencm,linkcm)
+    rm(tencm,linkcm)
+  }
   
+  
+  # END #
   return(cm_list)
 }
 
@@ -47,15 +60,26 @@ node_par = function(site, cm) {
   }
   
   
+  # Vietnamnet.vn
+  if (site == "vietnamnet") {
+    # Link prefix
+    link_prefix = "http://vietnamnet.vn"
+    # Nodes
+    source_suffix = "/index.html"
+    content_selector = "#ArticleContent p , strong"
+    date_selector = ".ArticleDate"
+    article_selector = ".dotter .f-16"
+    # Save directory
+    save_dir = paste(dir,"/vietnamnet",sep="")
+  }
   
+  # END #
   return(list(link_prefix = link_prefix,
               source_suffix = source_suffix,
               content_selector=content_selector,
               date_selector=date_selector,
               article_selector=article_selector,
               save_dir=save_dir))
-  
-  
 }
 
 

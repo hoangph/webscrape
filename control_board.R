@@ -15,6 +15,7 @@ library(rvest)
 library(stringr)
 
 dir = "D:/Webscrape/webscrape"
+
 setwd(dir)
 
 #---------------------------------------#
@@ -163,14 +164,14 @@ call_data = function(site, index) {
 #---------------------------------------#
 
 #### Targets ####
-site = "thanhnien"
+site = "vietnamnet"
 start_date = clean_date("01/01/2006")
 end_date = today()
 
 #### Other inputs ####
 
 # Do we have to compare with database? (0: no, 1: yes)
-compare = 1
+compare = 0
 if (compare == 1){
   database = call_data(site,"(3-2)")
   cm = unique(database$category)
@@ -223,7 +224,7 @@ for (j in c(1:nrow(cm_list))) {
   ok = TRUE
   while (ok) {
     # Lay 200 link trong chuyen muc mot luc
-    temp = rep(NA, 10)
+    temp = rep(NA, 200)
     final = list(link = temp, title = temp, date = temp, content = temp)
     col_names = c("link", "title", "date", "content")
     rm(temp)
