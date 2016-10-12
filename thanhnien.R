@@ -151,6 +151,7 @@ while (0) {
 
 #___ Merge files cu  ####
 while (FALSE) {
+  
   text = c()
   for (i in c(1:length(list.files()))) {
     message(i,"/",length(list.files()))
@@ -172,7 +173,7 @@ while (FALSE) {
 #___ Goi file sau khi da merge  ####
 while (FALSE) {
   setwd(paste(dir,"/thanhnien/finalData",sep=""))
-  text_uniq = read_csv("thanhnien(1).csv")
+  text_uniq = read_csv("thanhnien(2).csv")
   colnames(text_uniq) = c("link", "title", "date", "content", "category")
   text_uniq$date = as_date(as.integer(text_uniq$date))
   cm = unique(text_uniq$category)
@@ -199,7 +200,7 @@ linkcm = c("http://thanhnien.vn/thoi-su/date/trang-",
            "http://thanhnien.vn/van-hoa/date/trang-")
 cm_list = data.frame(tencm,linkcm)
 rm(tencm,linkcm)
-for (j in c(1:nrow(cm_list))) {
+for (j in c(5:5)) {
   #Parameters
   code = as.character(cm_list$tencm[j])
   source = cm_list$linkcm[j]
@@ -222,12 +223,12 @@ for (j in c(1:nrow(cm_list))) {
   if (sum(str_detect(ls(), pattern = as.character(code)) > 0)) { scraped = 1 }
   
   #_____Vong lap de lay link####
-  k = 1
+  k = 73
   ok = TRUE
-  i = 1
+  i = 2015
   while (ok) {
     # Scrape loop
-    temp = rep(NA, 1000)
+    temp = rep(NA, 500)
     final = list(link = temp, title = temp, date = temp, content = temp)
     col_names = c("link", "title", "date", "content")
     rm(temp)
@@ -244,7 +245,7 @@ for (j in c(1:nrow(cm_list))) {
         i = i+1
       } else {
         link = link_list_result[[2]]
-        link = paste("http://thanhnien.vn",link,sep="")
+        link[str_sub(link,1,4)!="http"] = paste("http://thanhnien.vn",link[str_sub(link,1,4)!="http"],sep="")
         title = link_list_result[[3]]
         # Sua loi link bi lap lai
         index_rm = which(str_sub(as.character(title),1,3) %in% "\n  " )
@@ -305,6 +306,7 @@ for (j in c(1:nrow(cm_list))) {
       cat("Saving...\n")
       save_list_csv(final,save_dir,code,col_names,suffix = paste("(",k,")",sep=""))
       k = k + 1
+      gc()
     }
   }
 }
