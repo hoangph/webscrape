@@ -14,6 +14,7 @@ library(lubridate)
 library(rvest)
 library(stringr)
 dir = "D:/Webscrape/webscrape"
+
 setwd(dir)
 source("parameter.R")
 source("functions.R")
@@ -22,15 +23,18 @@ source("functions.R")
 ####       Target identifier         ####
 #---------------------------------------#
 
+
 #### __Targets ####
-site = "vnexpress"
+
+site = "vietnamnet"
+
 start_date = clean_date("01/01/2006")
 end_date = today()
 
 #### __Other inputs ####
 
 # Do we have to compare with database? (0: no, 1: yes)
-compare = 1
+compare = 0
 if (compare == 1){
   setwd(paste(dir,"/",site,"/finalData"))
   database = call_data(site,"(3-2)")
@@ -82,7 +86,7 @@ for (j in c(1:nrow(cm_list))) {
   ok = TRUE
   while (ok) {
     # Lay 200 link trong chuyen muc mot luc
-    temp = rep(NA, 10)
+    temp = rep(NA, 200)
     final = list(link = temp, title = temp, date = temp, content = temp)
     col_names = c("link", "title", "date", "content")
     rm(temp)
