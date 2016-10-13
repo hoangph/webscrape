@@ -119,7 +119,7 @@ node_par = function(site, cm) {
     link_prefix = "http://laodong.com.vn"
     # Nodes
     source_suffix = ""
-    content_selector = ".content p"
+    content_selector = ".content p, .cms-desc"
     date_selector = ".cms-date"
     article_selector = ".hzol-clear .cms-link"
     # Save directory
