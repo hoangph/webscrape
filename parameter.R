@@ -48,6 +48,19 @@ link_par = function(site) {
     rm(tencm,linkcm)
   }
   
+  # laodong.com.vn
+  if (site == "laodong") {
+    tencm = c("thoisuxahoi","phapluat","kinhte","congdoan","suckhoe","vanhoagiaitri","tuvanphapluat")
+    linkcm = c("http://laodong.com.vn/thoi-su-xa-hoi/?trang=",
+               "http://laodong.com.vn/phap-luat/?trang=",
+               "http://laodong.com.vn/kinh-te/?trang=",
+               "http://laodong.com.vn/cong-doan/?trang=",
+               'http://laodong.com.vn/suc-khoe/?trang=',
+               "http://laodong.com.vn/van-hoa-giai-tri/?trang=",
+               "http://laodong.com.vn/tu-van-phap-luat/?trang=")
+    cm_list = data.frame(tencm,linkcm)
+    rm(tencm,linkcm)
+  }
   # END #
   return(cm_list)
 }
@@ -100,6 +113,18 @@ node_par = function(site, cm) {
     save_dir = paste(dir,"/dantri",sep="")
   }
   
+  #laodong.com.vn
+  if (site == "laodong") {
+    # Link prefix
+    link_prefix = "http://laodong.com.vn"
+    # Nodes
+    source_suffix = ""
+    content_selector = ".content p"
+    date_selector = ".cms-date"
+    article_selector = ".hzol-clear .cms-link"
+    # Save directory
+    save_dir = paste(dir,"/laodong",sep="")
+  }
   
   # END #
   return(list(link_prefix = link_prefix,
