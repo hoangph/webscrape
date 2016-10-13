@@ -33,6 +33,20 @@ link_par = function(site) {
     rm(tencm,linkcm)
   }
   
+  # dantri.com.vn
+  if (site == "dantri") {
+    tencm = c("sukien", "xahoi","giaoduc","kinhdoanh","vanhoa","phapluat","nhipsongtre","suckhoe")
+    linkcm = c("http://dantri.com.vn/su-kien/trang-",
+               "http://dantri.com.vn/xa-hoi/trang-",
+               "http://dantri.com.vn/giao-duc-khuyen-hoc/trang-",
+               "http://dantri.com.vn/kinh-doanh/trang-",
+               "http://dantri.com.vn/van-hoa/trang-",
+               "http://dantri.com.vn/phap-luat/trang-",
+               "http://dantri.com.vn/nhip-song-tre/trang-",
+               "http://dantri.com.vn/suc-khoe/trang-")
+    cm_list = data.frame(tencm,linkcm)
+    rm(tencm,linkcm)
+  }
   
   # END #
   return(cm_list)
@@ -72,6 +86,20 @@ node_par = function(site, cm) {
     # Save directory
     save_dir = paste(dir,"/vietnamnet",sep="")
   }
+  
+  # dantri.com.vn
+  if (site == "dantri") {
+    # Link prefix
+    link_prefix = "http://dantri.com.vn"
+    # Nodes
+    source_suffix = ".htm"
+    content_selector = "#divNewsContent p"
+    date_selector = ".tt-capitalize"
+    article_selector = ".fon6"
+    # Save directory
+    save_dir = paste(dir,"/dantri",sep="")
+  }
+  
   
   # END #
   return(list(link_prefix = link_prefix,
