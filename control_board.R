@@ -26,7 +26,7 @@ source("functions.R")
 
 #### __Targets ####
 
-site = "vietnamnet"
+site = "laodong"
 
 start_date = clean_date("01/01/2006")
 end_date = today()
@@ -51,7 +51,7 @@ if (compare == 1){
 #### __Run ####
 
 cm_list = link_par(site)
-for (j in c(1:nrow(cm_list))) {
+for (j in c(7:6)) {
   code = as.character(cm_list$tencm[j])
   source = cm_list$linkcm[j]
   par = node_par(site, code)
@@ -65,12 +65,12 @@ for (j in c(1:nrow(cm_list))) {
   # Check xem chuyen muc da scrape chua
   # NOTE: can file data cu co ten giong vs ten chuyen muc 
   scraped = 0
-  if (sum(str_detect(ls(), pattern = as.character(code)) > 0)) { scraped = 1 }
+  if ("link_list" %in% ls()) {scraped = 1}
   
   #___Vong lap de lay link####
   # Starting point
   setwd(save_dir)
-  file_list = list.files()[which(str_sub(list.files(), 1, str_locate(list.files(),"_")-1)==code)]
+  file_list = list.files()[which(str_sub(list.files(), 1, str_locate(list.files(),"_")[,1]-1)==code)]
   k_index = str_locate(file_list,pattern = "file")[,1]
   p_index = str_locate(file_list,pattern = "page")[,1]
   e_index = str_locate(file_list,pattern = "_.csv")[,1]
@@ -92,10 +92,21 @@ for (j in c(1:nrow(cm_list))) {
     rm(temp)
     # Dien vao
     skipped = c()
+    last_count = 0
     while (sum(is.na(final[["link"]])) > 0) {
       cat("Looking into page", i," section: ", as.character(code),"\n")
       link_list_result = source %>% paste(i,source_suffix,sep = "") %>% 
         get_article(article_selector)
+      if (length(link_list_result[[3]])==0) { last_count = last_count + 1 }
+      if (last_count == 20) { 
+        message("finising")
+        ok = FALSE # chuyen qua chuyen muc khac
+        lastrecord = max(which(!is.na(final[["link"]])))
+        final[["link"]] = final[["link"]][1:lastrecord]
+        final[["title"]] = final[["title"]][1:lastrecord]
+        final[["date"]] = final[["date"]][1:lastrecord]
+        final[["content"]] = final[["content"]][1:lastrecord]
+      }
       if (link_list_result[1]==1) {
         message("Skipped page ", i)
         skipped = c(skipped, i)
@@ -118,7 +129,7 @@ for (j in c(1:nrow(cm_list))) {
         }
         # _____Check xem link da scrape tu truoc chua ####
         if (scraped==1) {
-          index_get = which(is.na(match(link, get(code)$link)))
+          index_get = which(is.na(match(link, link_list$link)))
           link = link[index_get]
           title = title[index_get]
           rm(index_get)
@@ -154,18 +165,26 @@ for (j in c(1:nrow(cm_list))) {
     }
     # Check xem bai cuoi cung da vuot qua gioi han thoi gian chua
     last_date = as_date(as.integer(final[["date"]][max(which(!is.na(final[["date"]])&final[["date"]]!="error"))]))
-    if (last_date < start_date) {
-      ok = FALSE
+    if (last_date < start_date) { ok = FALSE } 
+    if (ok == FALSE) {
       message("Done scraping with specified time range. Saving...")
       save_list_csv(final,save_dir,code,col_names,suffix = paste("file",k,"page",i-1,sep=""))
     } else {
-      #assign(paste("final",k,sep=""), final)
       cat("Saving...\n")
       save_list_csv(final,save_dir,code,col_names,suffix = paste("file",k,"page",i-1,sep=""))
       k = k + 1
       gc()
     }
   }
+  # merge cac file da scrape cua cac chuyen muc truoc va lay link de so sanh
+  merge_result = merge_files(save_dir, code)
+  setwd(paste(dir,"/",site,"/finalData",sep=""))
+  if (length(list.files())!=0) {
+    link_list = call_data(site,"_link")
+    colnames(link_list) = "link"
+    link_list = rbind(link_list, merge_result[,1]) %>% unique()
+  } else { link_list = merge_result[,1] %>% unique() }
+  rm(merge_result)
+  write_excel_csv(link_list, paste(site,"_link.csv",sep=""))
+  gc()
 }
-
-

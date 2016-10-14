@@ -1,9 +1,16 @@
 ################################################-
 #####  Written by Hoang Phan. September 2016 
 ################################################-
+library(tidyverse)
+library(Rfacebook)
+library(lubridate)
+library(rvest)
+library(stringr)
+library(tm)
+dir = "D:/Webscrape/webscrape"
 
 ###--------------------------------###
-#     General purpose functions      #
+####   General purpose functions  ####
 ###--------------------------------###
 
 
@@ -114,11 +121,13 @@ list_fill = function(list, vector, index) {
 }
 
 # Merge files
-merge_files = function(directory) {
+merge_files = function(directory, code) {
   setwd(directory)
   text = c()
-  for (i in c(1:length(list.files()))) {
-    message(i,"/",length(list.files()))
+  merged = c()
+  file_index = which(str_sub(list.files(), 1, str_locate(list.files(),"_")[,1]-1) %in% code)
+  for (i in file_index) {
+    message(i,"/",length(file_index))
     table = read_csv(list.files()[i])
     code = str_split(list.files()[i],"_")[[1]][1]
     table$cm = rep(code, nrow(table))
@@ -165,4 +174,20 @@ split_by_year = function(x, site, savedir) {
     write_excel_csv(split, paste(site,"_",y,".csv",sep=""))
   }
 }
+
+# Count keywords in text
+count_key = function(text_vector, keywords_vector) {
+  count = str_count(text_vector,pattern=paste(keywords_vector,collapse="|"))
+  count[which(is.na(count))] <- 0
+  return(count)
+}
+ 
+# Get the first n paragraphs 
+first_real_text = function(string, n) {
+  string = str_split(string, "\n")[[1]]
+  string = string[nchar(string)>1]
+  string = string[1:n]
+  return(string)
+}
+
 
