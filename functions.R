@@ -6,7 +6,7 @@ library(Rfacebook)
 library(lubridate)
 library(rvest)
 library(stringr)
-library(tm)
+#library(tm)
 dir = "D:/Webscrape/webscrape"
 
 ###--------------------------------###
@@ -126,8 +126,10 @@ merge_files = function(directory, code) {
   text = c()
   merged = c()
   file_index = which(str_sub(list.files(), 1, str_locate(list.files(),"_")[,1]-1) %in% code)
+  c = 0
   for (i in file_index) {
-    message(i,"/",length(file_index))
+    c = c+1
+    message(c,"/",length(file_index))
     table = read_csv(list.files()[i])
     code = str_split(list.files()[i],"_")[[1]][1]
     table$cm = rep(code, nrow(table))
@@ -148,8 +150,10 @@ merge_files = function(directory, code) {
 call_data = function(site, index) {
   setwd(paste(dir,"/",site,"/finalData",sep=""))
   text_uniq = read_csv(paste(site,index,".csv",sep=""))
-  colnames(text_uniq) = c("link", "title", "date", "content", "category")
-  text_uniq$date = as_date(as.integer(text_uniq$date))
+  if (index == "_link") {colnames(text_uniq) = "link"} else {
+    colnames(text_uniq) = c("link", "title", "date", "content", "category") 
+    text_uniq$date = as_date(as.integer(text_uniq$date))
+  }
   return(text_uniq)
 }
 

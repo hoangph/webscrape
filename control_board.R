@@ -26,7 +26,7 @@ source("functions.R")
 
 #### __Targets ####
 
-site = "laodong"
+site = "vietnamnet"
 
 start_date = clean_date("01/01/2006")
 end_date = today()
@@ -34,24 +34,15 @@ end_date = today()
 #### __Other inputs ####
 
 # Do we have to compare with database? (0: no, 1: yes)
-compare = 0
+compare = 1
 if (compare == 1){
-  setwd(paste(dir,"/",site,"/finalData"))
-  database = call_data(site,"(3-2)")
-  cm = unique(database$category)
-  for (i in c(1:length(cm))) {
-    data = filter(database, category == cm[i])
-    # Giu lai link de so sanh (bo di neu muon lay ca noi dung)
-    data = data[,1]
-    assign(cm[i], data)
-  }
-  rm(data, cm)
+  link_list = call_data(site, "_link")
 }
 
 #### __Run ####
 
 cm_list = link_par(site)
-for (j in c(7:6)) {
+for (j in c(1:nrow(cm_list))) {
   code = as.character(cm_list$tencm[j])
   source = cm_list$linkcm[j]
   par = node_par(site, code)
