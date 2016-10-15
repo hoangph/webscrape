@@ -12,18 +12,17 @@ Dưới đây là kết quả scraping web vnexpress.net (5 chuyên mục bao g�
 library(readr)
 library(stringr)
 library(lubridate)
+library(dplyr)
+
 dir = "D:/Webscrape/webscrape"
+setwd(dir)
+source("functions.R")
 
 # read the data
-setwd(paste(dir,"/vnexpress/finalData",sep=""))
-text = read_csv("vnexpress.csv")
-colnames(text) = c("link", "title", "date", "content", "category")
-text$date = as_date(as.integer(text$date))
-cm = unique(text$category)
-
+text = call_data(site = "vnexpress",index = "")
 ```
 
-Ví dụ 1 bài báo:
+#Ví dụ 1 bài báo:
 ```{r}
 message("Link: ",text$link[1])
 cat("\nTieu de: ", text$title[1], "\n\n")
@@ -31,21 +30,21 @@ example = text$content[1]
 example
 ```
 
-Tách lấy tiêu đề và 2 đoạn văn đầu:
+#Tách lấy tiêu đề và 2 đoạn văn đầu:
 ```{r warning=FALSE}
 # Function de xac dinh 2 doan van dau
 first2_real_text = function(string) {
-  string = str_split(string, "\r\r\n\t")[[1]]
+  string = str_split(string, "\n")[[1]]
   string = string[nchar(string)>1]
   string = string[1:2]
   return(string)
 }
 # Thuc hien
 two_para = lapply(text$content,FUN = first2_real_text) %>% lapply(FUN=tolower)
-
+two_para[c(1:2)]
 ```
 
-Search các bài có từ "tham nhũng" hoặc "hối lộ" trong: (1) Tiêu đề; hoặc (2) 2 đoạn văn đầu (đoạn đầu thường là intro của bài báo).
+#Search các bài có từ "tham nhũng" hoặc "hối lộ" trong: (1) Tiêu đề; hoặc (2) 2 đoạn văn đầu (đoạn đầu thường là intro của bài báo).
 
 ```{r}
 # Khai bao tu khoa
@@ -56,17 +55,62 @@ title = tolower(text$title)
 title_key = str_count(title, paste(key_cor,collapse="|"))
 
 # Xac dinh cac bai co tu khoa trong 2 doan van dau
-para_key = str_count(two_para, paste(key_cor,collapse="|"))
+count_key = function(text_vector, keywords_vector) {
+  count = str_count(text_vector,pattern=paste(keywords_vector,collapse="|"))
+  count[which(is.na(count))] <- 0
+  return(count)
+}
+
+para_key_all = lapply(two_para, count_key, keywords_vector = key_cor)
+para_key = lapply(para_key_all,sum) %>% unlist()
+
 
 # Tong hop ket qua 
 contain_key = title_key + para_key
 article_cor = text[which(contain_key>0),]
-article_cor$title
+head(article_cor$title)
 
 
 ```
 
+#Dưới đây là kết quả:
+##Theo tháng:
+```{r}
+# Ve do thi 
+library(xts)
+library(ggplot2)
+text = cbind(text,key_cor = (contain_key>0))
+text$month = floor_date(text$date, unit = "month")
+count = xts(text$key_cor[!is.na(text$date)], order.by = text$date[!is.na(text$date)])
+count = apply.daily(count, FUN=sum)
+# __xuat hien theo thoi gian
+# ____theo thang
+
+count_month = apply.monthly(count["2006/"], FUN=sum)
+ggplot(count_month, aes(x=index(count_month),y=count_month)) +
+  geom_line() + theme_light() +
+  ylab("So bai bao") + xlab("Thang")
 
 
-Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
-When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+
+```
+
+##Theo từng chuyên mục:
+```{r}
+# __theo chuyen muc
+count_group = group_by(text,month,category) %>% summarise(contain = sum(key_cor))
+count_group = count_group[order(count_group$month),]
+count_group = count_group[!is.na(count_group$month),]
+count_group = count_group[count_group$month > clean_date("31/12/2005"),]
+ggplot(count_group,aes(x=month,y=contain)) +
+  geom_line() + facet_wrap(~category) + theme_light()
+```
+
+
+
+
+
+
+
+

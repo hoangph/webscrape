@@ -39,7 +39,9 @@ if (compare == 1){
   link_list = call_data(site, "_link")
 }
 
-#### __Run ####
+#---------------------------------------#
+####            Scrape               ####
+#---------------------------------------#
 
 cm_list = link_par(site)
 for (j in c(1:nrow(cm_list))) {
@@ -133,7 +135,7 @@ for (j in c(1:nrow(cm_list))) {
       }
     }
     
-    #_____Doc cac bai trong list link vua lay ####
+    #___Doc cac bai trong list link vua lay ####
     article_no = length(final[["link"]])
     save_count = 1
     for (a in c(1:article_no)) {
@@ -179,3 +181,194 @@ for (j in c(1:nrow(cm_list))) {
   write_excel_csv(link_list, paste(site,"_link.csv",sep=""))
   gc()
 }
+
+
+#---------------------------------------#
+####            ANALYSIS             ####
+#---------------------------------------#
+dir = "D:/Webscrape/webscrape"
+setwd(dir)
+source("functions.R")
+#**** Keywords count ****#
+#__Counting ####
+#____ Input _____#
+keywords = c("cá chết hàng loạt", "cá chết", "ô nhiễm biển miền trung", "formosa", "công bố nguyên nhân cá chết") %>% iconv(to = "UTF-8") %>% tolower()
+keycode = c("cachethangloat", "cachet", "onhiembienmientrung", "formosa", "congbonguyennhancachet")
+
+site = c("vnexpress", "dantri", "thanhnien")
+start_year = 2011
+end_year = 2016
+### count in content? (contentcount: 0-no, 1-first 2 paragraphs; 2-full content; 3-all) 
+contentcount = 3
+
+#______ Do ______#
+#s = site[1]
+#year = 2006
+
+for (s in (site)) {
+  for (kcode in keycode) {
+    assign(paste(s, kcode, sep = "_"), c())
+  }
+  for (year in c(start_year:end_year)) {
+    cat("Reading ", year, " of ", s)
+    text = call_data(site = s, index = paste("_", year, sep = ""))
+    
+    # Cleaning
+    ### Remove duplicated and non-existed records
+    text = text[!duplicated(text$link),]
+    text = text[!is.na(text$date),]
+    
+    ### Fix category (to be done..)
+    
+    # Counting
+    count_result = basic_count(text, keywords, keycode, contentcount)
+    
+    # Saving
+    for (i in c(1:length(count_result))) {
+      text_count = cbind(text,count_result[[i]])
+      text_count$title = NULL
+      text_count$content = NULL
+      assign(paste(s, names(count_result[i]), sep = "_"), 
+             rbind(get(paste(s, names(count_result[i]), sep = "_")), text_count))
+      rm(text_count)
+    }
+    rm(text, count_result)
+    gc(verbose = TRUE)
+  }
+}
+
+#__Save files ####
+var_list = ls()[which(str_count(ls(),paste(keycode, collapse = "|"))>0)]
+keycode = str_split(var_list, "_") %>% lapply(`[`, 2) %>% unlist() %>% unique()
+site = str_split(var_list, "_") %>% lapply(`[`, 1) %>% unlist() %>% unique()
+
+for (s in site) {
+  for (kcode in keycode) {
+    save_final(get(paste(s, kcode, sep = "_")), s, paste(s, "_", kcode, ".csv", sep = ""))
+  }
+}
+
+
+#__Call count results ####
+
+keywords = c("cá chết hàng loạt", "cá chết", "ô nhiễm biển miền trung", "formosa", "công bố nguyên nhân cá chết") %>% iconv(to = "UTF-8") %>% tolower()
+keycode = c("cachethangloat", "cachet", "onhiembienmientrung", "formosa", "congbonguyennhancachet")
+site = c("vnexpress", "dantri", "thanhnien")
+for (s in site) {
+  for (kcode in keycode) {
+    count_result = call_count(s, kcode)
+    assign(paste(s, kcode, sep = "_"), count_result)
+    rm(count_result)
+  }
+}
+
+#__Merge count results ####
+# After loading up count results:
+var_list = ls()[which(str_count(ls(),paste(keycode, collapse = "|"))>0)]
+keycode = str_split(var_list, "_") %>% lapply(`[`, 2) %>% unlist() %>% unique()
+site = str_split(var_list, "_") %>% lapply(`[`, 1) %>% unlist() %>% unique()
+### NOTE: Make sure they have the same links in the same order
+for (s in site) {
+  sum = dplyr::select(get(paste(s, keycode[1], sep = "_")), c(link, date, category))
+  sum$title_count = rep(0, nrow(sum))
+  sum$para_count = rep(0, nrow(sum))
+  sum$content_count = rep(0, nrow(sum))
+  sum$total_count = rep(0, nrow(sum))
+  
+  for (kcode in keycode) {
+    sum$title_count = sum$title_count + get(paste(s, kcode, sep = "_"))$title_count
+    sum$para_count = sum$para_count + get(paste(s, kcode, sep = "_"))$para_count
+    sum$content_count = sum$content_count + get(paste(s, kcode, sep = "_"))$content_count
+    sum$total_count = sum$total_count + get(paste(s, kcode, sep = "_"))$total_count
+  }
+  sum$contain = as.double(sum$total_count > 0)
+  sum = time_round(sum, "date")
+  assign(paste(s, "count", sep = "_"), sum)
+  rm(sum)
+}
+### From all sites
+allsite_count = c()
+for (s in site) {
+  allsite_count = rbind(get(paste(s, "_count", sep = "")))
+}
+
+for (kcode in keycode) {
+  temp = c()
+  for (s in site) {
+    temp = rbind(temp, get(paste(s, kcode, sep = "_")))
+  }
+  assign(paste("allsite", kcode, sep = "_"), temp)
+  rm(temp)
+  gc()
+}
+
+#__Visualizing ####
+
+count.column = c("title_count", "para_count")
+count_col = c("total_count")
+count_col = c("title_count")
+
+### Total site
+
+unit = "month"
+dantri = plot_total(dantri_count, count_col, unit) + ggtitle("dantri")
+vnexpress = plot_total(vnexpress_count, count_col, unit) + ggtitle("vnexpress")
+thanhnien = plot_total(thanhnien_count, count_col, unit) + ggtitle("thanhnien") 
+multiplot(dantri, vnexpress, thanhnien, cols = 2)
+
+allsite = plot_total(allsite_count, count_col, unit) + ggtitle("ALL") 
+
+### By category
+unit = "month"
+cat = "category"
+dantri = plot_by_cat(dantri_count, count_col, unit, cat) + ggtitle("dantri")
+vnexpress = plot_by_cat(vnexpress_count, count_col, unit, cat) + ggtitle("vnexpress")
+thanhnien = plot_by_cat(thanhnien_count, count_col, unit, cat) + ggtitle("thanhnien")
+dantri
+vnexpress
+thanhnien
+
+### By month
+unit = "month2"
+cat = "year2"
+dantri_count$month2 = month(dantri_count$date) %>% as.integer 
+vnexpress_count$month2 = month(vnexpress_count$date) %>% as.integer
+thanhnien_count$month2 = month(thanhnien_count$date) %>% as.integer
+dantri_count$year2 = year(dantri_count$date) %>% as.integer 
+vnexpress_count$year2 = year(vnexpress_count$date) %>% as.integer
+thanhnien_count$year2 = year(thanhnien_count$date) %>% as.integer
+
+### __All years
+dantri = plot_total(dantri_count, count_col, unit) + ggtitle("dantri") + scale_x_discrete(limits=c(1:12))
+vnexpress = plot_total(vnexpress_count, count_col, unit) + ggtitle("vnexpress") + scale_x_discrete(limits=c(1:12))
+thanhnien = plot_total(thanhnien_count, count_col, unit) + ggtitle("thanhnien") + scale_x_discrete(limits=c(1:12))
+multiplot(dantri, vnexpress, thanhnien, cols = 2)
+### __By year
+dantri = plot_by_cat(dantri_count, count_col, unit, cat) + ggtitle("dantri") + scale_x_discrete(limits=c(1:12))
+vnexpress = plot_by_cat(vnexpress_count, count_col, unit, cat) + ggtitle("vnexpress") + scale_x_discrete(limits=c(1:12))
+thanhnien = plot_by_cat(thanhnien_count, count_col, unit, cat) + ggtitle("thanhnien") + scale_x_discrete(limits=c(1:12))
+dantri
+vnexpress
+thanhnien
+
+### Back up
+while (FALSE) {
+  count_group = group_by(text,month,category) %>% summarise(contain = sum(contain))
+  count_group = count_group[order(count_group$month),]
+  plot_by_cat = ggplot(count_group,aes(x=month,y=contain)) +
+    geom_bar() + facet_wrap(~category) + theme_light()
+  plot_total = ggplot(count_group,aes(x=month,y=contain)) +
+    geom_bar()+ theme_light()
+  plot_total
+}
+
+
+#__Frequency analysis ####
+
+### Regions
+
+### Most frequently mentioned words
+
+### Highly correlated keywords
+
+
