@@ -6,8 +6,8 @@ library(Rfacebook)
 library(lubridate)
 library(rvest)
 library(stringr)
-#library(tm)
-
+library(tm)
+library(stringi)
 
 ###--------------------------------###
 ####   General purpose functions  ####
@@ -166,7 +166,7 @@ call_data = function(site, index) {
 call_count = function(site, key_code) {
   setwd(paste(dir,"/",site,"/finalData",sep=""))
   text_uniq = read_csv(paste(site, "_", key_code, ".csv", sep = ""))
-  colnames(text_uniq) = c("link", "date", "category", "title_count", "para_count", "content_count", "total_count") 
+  colnames(text_uniq) = c("link", "date", "category", "title_count", "para_count", "content_count") 
   text_uniq$date = as_date(as.integer(text_uniq$date))
   return(text_uniq)
 }
@@ -341,15 +341,8 @@ save_final = function(x, site, name) {
 # Basic analysis
 # keywords = c("tham nhũng", "hối lộ")
 ### count in content? (contentcount: 0-title, 1-first 2 paragraphs; 2-full content; 3-all) 
-basic_count = function(text, keywords, keycode, contentcount) {
+basic_count = function(text, keywords, keycode, contentcount, twopara) {
   result = list()
-  text$title = iconv(text$title, to = "UTF-8") %>% tolower()
-  if (contentcount != 0) {text$content = iconv(text$content, to = "UTF-8") %>% tolower()} 
-  ### Split
-  if (contentcount == 1 | contentcount == 3) {
-    message("getting introductions...")
-    two_para = lapply(text$content,FUN = first_real_text, n=2) 
-  }
   for (i in c(1:length(keywords))) {
     key = keywords[i]
     kcode = keycode[i]
@@ -363,7 +356,7 @@ basic_count = function(text, keywords, keycode, contentcount) {
     if (contentcount == 1 | contentcount == 3) {
       ### Count in introductions
       message("counting in introductions...")
-      para_key = lapply(two_para, count_key, keywords_vector = key) %>% unlist()
+      para_key = count_key(twopara$content, key)
     }
     if (contentcount == 2 | contentcount == 3) {
       # Count in content
@@ -371,7 +364,7 @@ basic_count = function(text, keywords, keycode, contentcount) {
       content_key = lapply(text$content, FUN = count_key, keywords_vector = key) %>% unlist()
     }
     # Merge into list
-    result[[kcode]] = list(title_count = title_key, para_count = para_key, content_count = content_key, total_count = title_key + para_key + content_key)
+    result[[kcode]] = list(title_count = title_key, para_count = para_key, content_count = content_key)
     rm(title_key, para_key, content_key)
   }
   return(result)
