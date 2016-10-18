@@ -505,24 +505,66 @@ BigramTokenizer <- function(x) unlist(lapply(ngrams(words(x), 2), paste, collaps
 docs = VCorpus(VectorSource(article$content))
 dtm = DocumentTermMatrix(docs, control = list(tokenize = BigramTokenizer))
 freq <- colSums(as.matrix(dtm))
-i = 0
+
 article$year = year(article$date)
 article$month = month(article$date)
-docs_meta = tm_map(docs, function(x) {
-  i = i + 1
-  meta(x, "Year") <- article$year
-  meta(x, "Month") <- article$month
-  x
+
+i = 0
+docs = tm_map(docs, function(x) {
+   i <<- i +1
+   meta(x, "Year") <- article$year[i]
+   meta(x, "Month") <- article$month[i]
+   x
 })
 
+for (year in c(start_year:end_year)) {
+  message("Converting ", year)
+  index = meta(docs, "Year") == year
+  assign(paste("docs", year, sep =  ""), docs[index])
+  dtm = DocumentTermMatrix(get(paste("docs", year, sep =  "")), control = list(tokenize = BigramTokenizer))
+  freq <- colSums(as.matrix(dtm))
+  assign(paste("dtm", year, sep = ""), dtm)
+  assign(paste("freq", year, sep = ""), freq)
+}
 
 
-ord <- order(freq)
+##### Most frequently mentioned words (bigram) 
+##### Total
+dtms = removeSparseTerms(dtm, 0.98)
 freq <- colSums(as.matrix(dtms))
+ord <- order(freq)
+freq[tail(ord)]
+findFreqTerms(dtm, lowfreq=1000)
 
-##### 
+while (FALSE) {
+  wf <- data.frame(word=names(freq), freq=freq)   
+  head(wf) 
+  p <- ggplot(subset(wf, freq>2000), aes(word, freq))
+  p <- p + geom_bar(stat="identity")   
+  p <- p + theme(axis.text.x=element_text(angle=45, hjust=1))   
+  p 
+}
+  
+
+#### By year
+for (year in c(start_year:end_year)) {
+  order = order(get(paste("freq", year, sep = "")))
+  message("most frequently mentioned of ", year, " :")
+  print(get(paste("freq", year, sep = ""))[tail(order, n = 5)])
+}
+
+##### Highly Correlated words
+#####   Total
+findAssocs(dtms, c("hối lộ", "biển thủ"), corlimit=0.7)
 
 
-### Highly correlated keywords
+dtms = removeSparseTerms(get(paste("dtm", year, sep = "")), 0.9)
 
-
+##### tf-idf
+m = as.matrix(dtms)
+tf = m
+idf = log(nrow(m)/colSums(m))
+tfidf <- m
+for(word in names(idf)){
+  tfidf[,word] <- tf[,word] * idf[word]
+}
