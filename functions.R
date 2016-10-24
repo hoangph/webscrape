@@ -7,7 +7,7 @@ library(lubridate)
 library(rvest)
 library(stringr)
 #library(tm)
-dir = "D:/Webscrape/webscrape"
+
 
 ###--------------------------------###
 ####   General purpose functions  ####
