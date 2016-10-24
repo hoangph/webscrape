@@ -13,7 +13,7 @@ library(Rfacebook)
 library(lubridate)
 library(rvest)
 library(stringr)
-dir = "D:/Webscrape/webscrape"
+dir = "/home/hoangph/Documents/Webscrape"
 
 setwd(dir)
 source("parameter.R")
@@ -26,7 +26,7 @@ source("functions.R")
 
 #### __Targets ####
 
-site = "vietnamnet"
+site = "laodong"
 
 start_date = clean_date("01/01/2006")
 end_date = today()
@@ -34,7 +34,7 @@ end_date = today()
 #### __Other inputs ####
 
 # Do we have to compare with database? (0: no, 1: yes)
-compare = 1
+compare = 0
 if (compare == 1){
   link_list = call_data(site, "_link")
 }
@@ -42,7 +42,7 @@ if (compare == 1){
 #### __Run ####
 
 cm_list = link_par(site)
-for (j in c(1:nrow(cm_list))) {
+for (j in c(1, 5, 6)) {
   code = as.character(cm_list$tencm[j])
   source = cm_list$linkcm[j]
   par = node_par(site, code)
@@ -68,6 +68,7 @@ for (j in c(1:nrow(cm_list))) {
   k_index = str_sub(file_list, k_index+4, p_index-1)
   p_index = str_sub(file_list, p_index+4, e_index-1)
   
+ 3
   k = max(as.integer(k_index[!is.na(k_index)])) + 1
   i = max(as.integer(p_index[!is.na(p_index)])) + 1
   if (k==-Inf) {k = 1}
