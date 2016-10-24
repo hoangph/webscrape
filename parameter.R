@@ -35,7 +35,8 @@ link_par = function(site) {
   
   # dantri.com.vn
   if (site == "dantri") {
-    tencm = c("sukien", "xahoi","giaoduc","kinhdoanh","vanhoa","phapluat","nhipsongtre","suckhoe")
+    tencm = c("sukien", "xahoi","giaoduc","kinhdoanh","vanhoa","phapluat","nhipsongtre","suckhoe",
+              ")
     linkcm = c("http://dantri.com.vn/su-kien/trang-",
                "http://dantri.com.vn/xa-hoi/trang-",
                "http://dantri.com.vn/giao-duc-khuyen-hoc/trang-",
