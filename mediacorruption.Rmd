@@ -1,113 +1,179 @@
 ---
-title: "Media corruption"
-output:
-  html_notebook: default
-  html_document: default
-
+title: "Web scraping"
+output: html_notebook
 ---
+## Báo cáo kết quả
+### 1. Chủ đề tham nhũng
+#### 1.1. Codebook
+Các bài báo được lấy trong giai đoạn 2006 - 2016 từ nguồn:
 
-Dưới đây là kết quả scraping web vnexpress.net (5 chuyên mục bao gồm pháp luật, thời sự, kinh doanh, giáo dục và cộng đồng). Codebook của dự án media corruption được tham khảo để theo dõi sự thay đổi trong thông tin về tham nhũng trên báo mạng.
-
-```{r include=FALSE}
-library(readr)
-library(stringr)
-library(lubridate)
-library(dplyr)
-
+(1) dantri.com.vn
+(2) thanhnien.vn
+(3) vnexpress.vn
+```{r warning=FALSE, echo =FALSE}
 dir = "D:/Webscrape/webscrape"
 setwd(dir)
 source("functions.R")
-
-# read the data
-text = call_data(site = "vnexpress",index = "")
+site = c("vnexpress", "dantri", "thanhnien")
+start_year = 2006
+end_year = 2016
 ```
-
-#Ví dụ 1 bài báo:
-```{r}
-message("Link: ",text$link[1])
-cat("\nTieu de: ", text$title[1], "\n\n")
-example = text$content[1]
-example
+Các từ khóa sau được sử dụng để xác tìm kiếm bài báo theo chủ đề tham nhũng:
+(1) tham nhũng
+(2) hối lộ
+(3) đút lót
+(4) lợi dụng chức vụ
+(5) lợi dụng quyền hạn
+(6) biển thủ công quỹ
+2 vị trí tìm kiếm là tiêu đề (title) và nội dung của bài báo (content). Vì trong quá trình scraping đã vô tình xóa dấu phân đoạn nên không thể tìm kiếm theo từng đoạn văn của bài.
+```{r echo=FALSE, warning=FALSE}
+keywords = c("tham nhũng", "hối lộ", "đút lót", "lợi dụng chức vụ", "lợi dụng quyền hạn", "biển thủ công quỹ") %>% tolower()
+keycode = c("thamnhung", "hoilo","dutlot", "loidungchucvu", "loidungquyenhan", "bienthucongquy")
+site = c("vnexpress", "dantri", "thanhnien")
+## Call counting results
+for (s in site) {
+  for (kcode in keycode) {
+    count_result = call_count(s, kcode)
+    assign(paste(s, kcode, sep = "_"), count_result)
+    rm(count_result)
+  }
+}
 ```
+Sau khi đã đếm xong từ khóa, ta lọc ra các bài có từ khóa xuất hiện ở tiêu đề (có xác suất đúng chủ đề cao) và tiến hành 2 bước:
+(1) Tìm tên các địa phương trong nội dung bài báo theo chủ đề đó ("tham nhũng"), chia địa phương theo 3 miền Bắc Trung Nam.
+(2) Thống kê các từ khóa xuất hiện nhiều nhất, các từ trong bài báo có tương quan cao nhất với từ khóa.
 
-#Tách lấy tiêu đề và 2 đoạn văn đầu:
+#### 1.2. Kết quả phân tích
+##### 1.2.1. Kết quả tìm kiếm từ khóa
 ```{r warning=FALSE}
-# Function de xac dinh 2 doan van dau
-first2_real_text = function(string) {
-  string = str_split(string, "\n")[[1]]
-  string = string[nchar(string)>1]
-  string = string[1:2]
-  return(string)
+# Tong hop ket qua cac tu khoa lai
+var_list = ls()[which(str_count(ls(),paste(keycode, collapse = "|"))>0)]
+keycode = str_split(var_list, "_") %>% lapply(`[`, 2) %>% unlist() %>% unique()
+site = str_split(var_list, "_") %>% lapply(`[`, 1) %>% unlist() %>% unique()
+for (s in site) {
+  sum = dplyr::select(get(paste(s, keycode[1], sep = "_")), c(link, date, category))
+  sum$title_count = rep(0, nrow(sum))
+  sum$para_count = rep(0, nrow(sum))
+  sum$content_count = rep(0, nrow(sum))
+  for (kcode in keycode) {
+    sum$title_count = sum$title_count + get(paste(s, kcode, sep = "_"))$title_count
+    sum$content_count = sum$content_count + get(paste(s, kcode, sep = "_"))$content_count
+  }
+  sum$total_count = sum$title_count + sum$content_count
+  sum$contain = as.double(sum$total_count > 0)
+  sum = time_round(sum, "date")
+  assign(paste(s, "count", sep = "_"), sum)
+  rm(sum)
 }
-# Thuc hien
-two_para = lapply(text$content,FUN = first2_real_text) %>% lapply(FUN=tolower)
-two_para[c(1:2)]
-```
-
-#Search các bài có từ "tham nhũng" hoặc "hối lộ" trong: (1) Tiêu đề; hoặc (2) 2 đoạn văn đầu (đoạn đầu thường là intro của bài báo).
-
-```{r}
-# Khai bao tu khoa
-key_cor = c("tham nhũng", "hối lộ")
-
-# Xac dinh cac bai co tu khoa trong tieu de
-title = tolower(text$title)
-title_key = str_count(title, paste(key_cor,collapse="|"))
-
-# Xac dinh cac bai co tu khoa trong 2 doan van dau
-count_key = function(text_vector, keywords_vector) {
-  count = str_count(text_vector,pattern=paste(keywords_vector,collapse="|"))
-  count[which(is.na(count))] <- 0
-  return(count)
+### Tong hop ket qua tu cac trang lai
+allsite_count = c()
+for (s in site) {
+  allsite_count = rbind(allsite_count, get(paste(s, "_count", sep = "")))
 }
 
-para_key_all = lapply(two_para, count_key, keywords_vector = key_cor)
-para_key = lapply(para_key_all,sum) %>% unlist()
-
-
-# Tong hop ket qua 
-contain_key = title_key + para_key
-article_cor = text[which(contain_key>0),]
-head(article_cor$title)
-
-
+for (kcode in keycode) {
+  temp = c()
+  for (s in site) {
+    temp = rbind(temp, get(paste(s, kcode, sep = "_")))
+  }
+  assign(paste("allsite", kcode, sep = "_"), temp)
+  rm(temp)
+  gc()
+}
 ```
+Đồ thị kết quả tìm kiếm tổng hợp (6 từ khóa và 3 trang báo mạng):
 
-#Dưới đây là kết quả:
-##Theo tháng:
 ```{r}
-# Ve do thi 
-library(xts)
-library(ggplot2)
-text = cbind(text,key_cor = (contain_key>0))
-text$month = floor_date(text$date, unit = "month")
-count = xts(text$key_cor[!is.na(text$date)], order.by = text$date[!is.na(text$date)])
-count = apply.daily(count, FUN=sum)
-# __xuat hien theo thoi gian
-# ____theo thang
-
-count_month = apply.monthly(count["2006/"], FUN=sum)
-ggplot(count_month, aes(x=index(count_month),y=count_month)) +
-  geom_line() + theme_light() +
-  ylab("So bai bao") + xlab("Thang")
-
-
-
-
+count_col = c("total_count")
+count_col2 = c("title_count")
+unit = "month"
+dantri = plot_total(dantri_count, count_col, unit) + ggtitle("dantri")
+vnexpress = plot_total(vnexpress_count, count_col, unit) + ggtitle("vnexpress")
+thanhnien = plot_total(thanhnien_count, count_col, unit) + ggtitle("thanhnien") 
+allsite = plot_total(allsite_count, count_col, unit) + ggtitle("Title and content")
+allsite2 = plot_total(allsite_count, count_col2, unit) + ggtitle("Title")
+multiplot(allsite, allsite2)
 ```
-
-##Theo từng chuyên mục:
+Kết quả tìm kiếm trên cả tiêu đề và nội dung đều có diễn biến tương tự nhau: cao ở cuối 2006, giảm dần cho đến 2009, tăng nhẹ vào 2011, mạnh vào cuối các năm 2012, 2013, 2014 và 2015.
+Để rõ hơn chúng ta nhìn kết quả theo năm:
 ```{r}
-# __theo chuyen muc
-count_group = group_by(text,month,category) %>% summarise(contain = sum(key_cor))
-count_group = count_group[order(count_group$month),]
-count_group = count_group[!is.na(count_group$month),]
-count_group = count_group[count_group$month > clean_date("31/12/2005"),]
-ggplot(count_group,aes(x=month,y=contain)) +
-  geom_line() + facet_wrap(~category) + theme_light()
+allsite_count$month2 = month(allsite_count$date) %>% as.integer 
+allsite_count$year2 = year(allsite_count$date) %>% as.integer 
+allsite2 = plot_total(allsite_count, count_col2, unit = "year2") + ggtitle("Title") + scale_x_discrete(limits=c(2006:2016))+ xlab("year")
+allsite1 = plot_total(allsite_count, count_col, unit = "year2") + ggtitle("Title and content") + scale_x_discrete(limits=c(2006:2016))+ xlab("year")
+multiplot(allsite2, allsite1)
 ```
+Về xu hướng trong 1 năm, các bài báo về tham nhũng xuất hiện nhiều hơn về cuối năm hoặc sau Tết (khoảng tháng 3), thấp vào giữa năm và tháng 2 (do nghỉ tết):
+```{r}
+allsite1 = plot_total(allsite_count, count.column = "title_count", unit = "month2") + ggtitle("Title") + scale_x_discrete(limits=c(1:12)) + xlab("month")
+allsite2 = plot_total(allsite_count, count.column = "total_count", unit = "month2") + ggtitle("Title and content") + scale_x_discrete(limits=c(1:12)) + xlab("month")
+multiplot(allsite1, allsite2)
+```
+Đi sâu vào từng năm, ta có biểu đồ theo tháng của từng năm (đếm trên tiêu đề):
+```{r}
+allsite1 = plot_by_cat(allsite_count, count.column = "title_count", unit = "month2", cat = "year2") + ggtitle("Title") + scale_x_discrete(limits=c(1:12)) + xlab("month")
+allsite1
 
+```
+Để biết các tháng có số bài tăng đột biến vào năm 2012 - 2015 do đâu, ta lọc các bài báo thuộc chủ đề tham nhũng.
+```{r echo = FALSE, warning=FALSE}
+##### Remove count results of individual pages
+for (s in site) {
+  rm(list = ls(pattern = s))
+}
+##### Call and filter articles 
+articlelink = allsite_count$link[allsite_count$title_count>0]
+article = c()
+for (s in site) {
+  for (year in c(start_year:end_year)) {
+    cat("Reading ", year, " of ", s)
+    text = call_data(site = s, index = paste("_", year, "_processed", sep = ""))
+    text = text[!duplicated(text$link),]
+    text = text[!is.na(text$date),]
+    text = text[text$link %in% articlelink,]
+    article = rbind(article, text)
+    rm(text)
+  }
+  gc()
+}
 
+```
+Các bài trong khoảng 10-11/2012 không có chủ đề thống nhất. Đây là tháng diễn ra họp Quốc hội khóa 13 nhưng chỉ có 1 bài báo về tham nhũng có liên quan, và các kỳ họp khác của Quốc hội cũng không chứng kiến sự tăng lên mạnh như vậy. 
+```{r}
+head(article$title[article$date %in% c(clean_date("01/10/2012"):clean_date("31/10/2012"))], n=10)
+```
+Các bài trong khoảng 11-12/2013:
+```{r}
+head(article$title[article$date %in% c(clean_date("01/11/2013"):clean_date("31/12/2013"))], n=10)
+```
+2 tháng này tăng cao do có nhiều bài viết về 3 chủ đề lớn:
+(1) tham nhũng tại vifon (tháng 11)
+(2) tham nhũng tại viện kiểm sát nhân dân (tháng 12)
+(3) phát biểu của một số lãnh đạo (đặc biệt là tổng bí thư về việc tham nhũng đã phát triển thành đường dây)
+
+Các bài trong tháng 3/2014:
+```{r}
+head(article$title[article$date %in% c(clean_date("01/03/2014"):clean_date("31/03/2014"))], n=10)
+```
+Tháng này có vụ lớn là "jtc nhật hối lộ quan chức đường sắt" với giá trị 16 tỷ đồng.
+
+Các bài tháng 10-12/2014:
+```{r}
+head(article$title[article$date %in% c(clean_date("01/10/2014"):clean_date("31/12/2014"))], n=10)
+```
+Tháng 10 có một số vụ nhỏ về tham nhũng, ngoài ra có nhiều phát biểu về sự thất vọng trong công tác phòng chống tham nhũng.Tháng 11 có vụ tham nhũng của 1 công ty thiết bị y tế với bộ y tế. Trong tháng 12, chỉ số tham nhũng của Việt Nam không thay đổi + tổng bí thư chủ trì phiên họp bcđ trung ương về phòng chống tham nhũng và có một số phát biểu.
+
+Các bài trong tháng 4/2015:
+```{r}
+head(article$title[article$date %in% c(clean_date("01/04/2015"):clean_date("30/04/2015"))], n=10)
+```
+Tháng này không có vụ nào lớn nhưng có nhiều sự kiện nhỏ bao gồm: "vụ jtc, nhật yêu cầu việt nam hoàn trả tiền tư vấn", "thành lập cục cảnh sát điều tra tội phạm về kinh tế và tham nhũng", "wb cấm cửa doanh nghiệp mỹ vì hối lộ việt nam", và một vài sự kiện khác.
+
+Tháng 12/2015:
+```{r}
+head(article$title[article$date %in% c(clean_date("01/12/2015"):clean_date("31/12/2015"))], n=10)
+```
+Tháng này có nhiều bài viết tuyên truyền về phòng chống tham nhũng, các phát biểu về kết quả đạt được, các phát biểu của một số lãnh đạo về sự thất vọng đối với tình hình chống tham nhũng ở Việt Nam.
 
 
 

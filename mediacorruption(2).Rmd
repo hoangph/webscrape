@@ -1,0 +1,238 @@
+---
+title: "Web scraping"
+output: html_notebook
+---
+##### 1.2.2. Kết quả tìm kiếm tỉnh/thành phố
+Tính số bài báo về "tham nhũng" có nhắc đến tỉnh thành:
+```{r}
+# Switch to appendix and use Ctrl D to run
+```
+
+
+```{r echo = FALSE, warning=FALSE}
+##### Clean first
+article$title = str_replace_all(string = article$title, pattern = "tphcm", replacement = "tp hồ chí minh")
+article$title = str_replace_all(string = article$title, pattern = "tp hcm", replacement = "tp hồ chí minh")
+article$title = str_replace_all(string = article$title, pattern = "thành phố hồ chí minh", replacement = "tp hồ chí minh")
+article$title = str_replace_all(string = article$title, pattern = "thành phố hcm", replacement = "tp hồ chí minh")
+article$title = str_replace_all(string = article$title, pattern = "thành phố mang tên bác", replacement = "tp hồ chí minh")
+article$title = str_replace_all(string = article$title, pattern = "sài gòn", replacement = "tp hồ chí minh")
+
+article$content = str_replace_all(string = article$content, pattern = "tphcm", replacement = "tp hồ chí minh")
+article$content = str_replace_all(string = article$content, pattern = "tp hcm", replacement = "tp hồ chí minh")
+article$content = str_replace_all(string = article$content, pattern = "thành phố hồ chí minh", replacement = "tp hồ chí minh")
+article$content = str_replace_all(string = article$content, pattern = "thành phố hcm", replacement = "tp hồ chí minh")
+article$content = str_replace_all(string = article$content, pattern = "thành phố mang tên bác", replacement = "tp hồ chí minh")
+article$content = str_replace_all(string = article$content, pattern = "sài gòn", replacement = "tp hồ chí minh")
+##### Count
+####### Make sure to have run appendix
+tinhthanh_count = c()
+### 1. Call count results ( topic-identifying keywords )
+for (i in c(1:length(tinhthanh$tinhthanh))) {
+  count_result = basic_count(article, tinhthanh$tinhthanh[i], tinhthanh$tinhthanh[i], contentcount = 2)
+  title = which(count_result[[1]][["title_count"]]>0)
+  content = which(count_result[[1]][["content_count"]]>0)
+  title_table = data.frame(province = rep(tinhthanh$tinhthanh[i], length(title)), 
+                           position = rep("title", length(title)),
+                           date = article$date[title],
+                           link = article$link[title])
+  content_table = data.frame(province = rep(tinhthanh$tinhthanh[i], length(content)), 
+                           position = rep("content", length(content)),
+                           date = article$date[content],
+                           link = article$link[content])
+  count_table = rbind(title_table, content_table)
+  tinhthanh_count = rbind(tinhthanh_count, count_table)
+  rm(count_result, title, content, title_table, content_table, count_table)
+}
+tinhthanh_count$page = NA
+for (s in site) {
+  temp = str_detect(tinhthanh_count$link, s)
+  tinhthanh_count$page[temp == 1] = s
+}
+
+tinhthanh_count = left_join(tinhthanh_count, tinhthanh[,-3], by = c("province" = "tinhthanh"))
+tinhthanh_count$month = month(tinhthanh_count$date) %>% as.integer()
+tinhthanh_count$year = year(tinhthanh_count$date) %>% as.integer()
+```
+Vì mỗi trang báo có trụ sở ở thành phố khác nhau nên ta xem xét theo từng trang:
+```{r warning=FALSE}
+library(scales)
+tinhthanh_count2 = tinhthanh_count
+
+dantri_tt = ggplot(tinhthanh_count[tinhthanh_count$page == "dantri",], aes(x = year, fill = khuvuc)) + geom_bar() + facet_wrap(~page)+ scale_x_discrete(limits = c(2006:2016))
+vnexpress_tt = ggplot(tinhthanh_count[tinhthanh_count$page == "vnexpress",], aes(x = year, fill = khuvuc)) + geom_bar() + facet_wrap(~page)+ scale_x_discrete(limits = c(2006:2016))
+thanhnien_tt = ggplot(tinhthanh_count[tinhthanh_count$page == "thanhnien",], aes(x = year, fill = khuvuc)) + geom_bar() + facet_wrap(~page)+ scale_x_discrete(limits = c(2006:2016))
+sum = group_by(tinhthanh_count, khuvuc, year, page) %>% summarise(count = n())
+total_tt = ggplot(sum, aes(x = year, y = count, fill = khuvuc)) + geom_bar(position = "fill", stat = "identity") + scale_y_continuous(labels = percent_format()) + scale_x_discrete(limits = c(2006:2016))
+total_tt_p = ggplot(sum, aes(x = year, y = count, fill = khuvuc)) + geom_bar(position = "fill", stat = "identity") + scale_y_continuous(labels = percent_format()) + scale_x_discrete(limits = c(2006:2016)) + facet_wrap(~page)
+total_tt
+total_tt_p
+dantri_tt
+vnexpress_tt
+thanhnien_tt
+```
+
+Sau khi loại bỏ 5 thành phố:
+```{r}
+tinhthanh_count2 = tinhthanh_count2[tinhthanh_count2$province != "hà nội",]
+tinhthanh_count2 = tinhthanh_count2[tinhthanh_count2$province != "tp hồ chí minh",]
+tinhthanh_count2 = tinhthanh_count2[tinhthanh_count2$province != "đà nẵng",]
+tinhthanh_count2 = tinhthanh_count2[tinhthanh_count2$province != "hải phòng",]
+tinhthanh_count2 = tinhthanh_count2[tinhthanh_count2$province != "cần thơ",]
+
+dantri_tt = ggplot(tinhthanh_count2[tinhthanh_count2$page == "dantri",], aes(x = year, fill = khuvuc)) + geom_bar() + facet_wrap(~page)+ scale_x_discrete(limits = c(2006:2016))
+vnexpress_tt = ggplot(tinhthanh_count2[tinhthanh_count2$page == "vnexpress",], aes(x = year, fill = khuvuc)) + geom_bar() + facet_wrap(~page)+ scale_x_discrete(limits = c(2006:2016))
+thanhnien_tt = ggplot(tinhthanh_count2[tinhthanh_count2$page == "thanhnien",], aes(x = year, fill = khuvuc)) + geom_bar() + facet_wrap(~page)+ scale_x_discrete(limits = c(2006:2016))
+sum = group_by(tinhthanh_count2, khuvuc, year, page) %>% summarise(count = n())
+total_tt = ggplot(sum, aes(x = year, y = count, fill = khuvuc)) + geom_bar(position = "fill", stat = "identity") + scale_y_continuous(labels = percent_format()) + scale_x_discrete(limits = c(2006:2016))
+total_tt_p = ggplot(sum, aes(x = year, y = count, fill = khuvuc)) + geom_bar(position = "fill", stat = "identity") + scale_y_continuous(labels = percent_format()) + scale_x_discrete(limits = c(2006:2016)) + facet_wrap(~page)
+total_tt
+total_tt_p
+dantri_tt
+vnexpress_tt
+thanhnien_tt
+
+
+```
+
+Nói chung tại 3 trang báo trên, tỷ lệ bài báo về tham nhũng tại các tỉnh phía bắc giảm và thay vào đó là tỉnh miền trung, đặc biệt từ sau 2011. Tỷ lệ bài có đề cập đến các tỉnh miền Nam tương đương miền Bắc.  Cơ cấu này tại các trang không có nhiều khác biệt. Báo Thanh Niên là tờ báo duy nhất có trụ sở tại TP.HCM.
+
+Báo dân trí gia tăng số lượng bài về tham nhũng theo thời gian kể từ 2009, trong khi vnexpress giảm dần và thanhnien tăng mạnh do bổ sung thêm chuyên mục vào năm 2012.
+
+So sánh với chỉ số PAPI thành phần về tham nhũng:
+```{r warning=FALSE}
+papi = read_csv("papi.csv")
+papi$tinh = tinhthanh$tinhthanh
+sum = group_by(tinhthanh_count, province) %>% summarise(count = n())
+papi = left_join(papi, sum, by = c("tinh" = "province"))
+papi$count[is.na(papi$count)] = 0
+papi = papi[order(-papi$count),]
+papi_ex = papi[c(-1,-2,-3,-4,-9),]
+tinh_p = ggplot(papi, aes(x = tinh, y = count)) + geom_bar(stat="identity", fill = "red") + scale_x_discrete(limits = papi$tinh)
+papi_p = ggplot(papi, aes(x = tinh, y = papi)) + geom_bar(stat="identity", fill = "red") + scale_y_continuous(limits = c(0,12)) + scale_x_discrete(limits = papi$tinh)
+multiplot(tinh_p, papi_p, cols = 2)
+
+tinh_p_ex = ggplot(papi_ex, aes(x = tinh, y = count)) + geom_bar(stat="identity", fill = "red") + scale_x_discrete(limits = papi_ex$tinh)
+papi_p_ex = ggplot(papi_ex, aes(x = tinh, y = papi)) + geom_bar(stat="identity", fill = "red")  + scale_x_discrete(limits = papi_ex$tinh) + coord_cartesian(ylim=c(3,7.5))
+multiplot(tinh_p_ex, papi_p_ex, cols=2)
+
+```
+
+##### 1.2.3. Phân tích từ được nhắc đến nhiều nhất
+Sử dụng phương pháp bag of words
+###### Từ 2 âm tiết
+```{r warning=FALSE, echo=FALSE}
+BigramTokenizer <- function(x) unlist(lapply(ngrams(words(x), 2), paste, collapse = " "), use.names = FALSE)
+docs = VCorpus(VectorSource(article$content))
+dtm = DocumentTermMatrix(docs, control = list(tokenize = BigramTokenizer))
+article$year = year(article$date)
+article$month = month(article$date)
+i = 0
+docs = tm_map(docs, function(x) {
+   i <<- i +1
+   meta(x, "Year") <- article$year[i]
+   meta(x, "Month") <- article$month[i]
+   meta(x, "Date") <- article$date[i]
+   x
+})
+
+while (FALSE) {
+  for (year in c(start_year:end_year)) {
+    message("Converting ", year)
+    index = meta(docs, "Year") == year
+    assign(paste("docs", year, sep =  ""), docs[index])
+    dtm = DocumentTermMatrix(get(paste("docs", year, sep =  "")), control = list(tokenize = BigramTokenizer))
+    freq <- colSums(as.matrix(dtm))
+    assign(paste("dtm", year, sep = ""), dtm)
+    assign(paste("freq", year, sep = ""), freq)
+  }
+}
+
+```
+
+Các từ có 2 âm tiết xuất hiện nhiều nhất:
+```{r}
+##### Total
+dtms = removeSparseTerms(dtm, 0.99)
+freq <- colSums(as.matrix(dtms))
+ord <- order(freq)
+freq[tail(ord, n = 50)]
+
+#findFreqTerms(dtm, lowfreq=1000)
+```
+
+```{r}
+#Theo từng năm:
+#### By year
+while (FALSE) {
+    for (year in c(start_year:end_year)) {
+    order = order(get(paste("freq", year, sep = "")))
+    message("most frequently mentioned of ", year, " :")
+    print(get(paste("freq", year, sep = ""))[tail(order, n = 50)])
+  }
+}
+```
+Lựa chọn 3 khoảng thời gian để tập trung:
+```{r}
+timerange = list(c(clean_date("01/12/2015"), clean_date("31/12/2015")),
+                 c(clean_date("01/11/2014"), clean_date("30/11/2014")),
+                 c(clean_date("01/03/2014"), clean_date("31/03/2014")))
+for (i in c(1:length(timerange))) {
+  message("start: ", timerange[[i]][1], " end: ", timerange[[i]][2])
+  index = (meta(docs, "Date") <= timerange[[i]][2]) & (meta(docs, "Date") >=  timerange[[i]][1])
+  docs_time = docs[index]
+  dtm_time = DocumentTermMatrix(docs_time, control = list(tokenize = BigramTokenizer))
+  freq <- colSums(as.matrix(dtm_time))
+  ord <- order(freq)
+  print(freq[tail(ord, n = 20)])
+}
+
+```
+
+Sử dụng điểm tf-idf để xếp hạng từ khóa:
+```{r}
+m = as.matrix(dtms)
+idf = log(nrow(m)/colSums(m))
+tf = m
+tfidf <- m
+for(word in names(idf)){
+  tfidf[,word] <- tf[,word] * idf[word]
+}
+score = colSums(tfidf)
+ord = order(score)
+score[tail(ord, n=50)]
+```
+Tập trung vào 3 khoảng thời gian:
+```{r}
+timerange = list(c(clean_date("01/12/2015"), clean_date("31/12/2015")),
+                 c(clean_date("01/11/2014"), clean_date("30/11/2014")),
+                 c(clean_date("01/03/2014"), clean_date("31/03/2014")))
+for (i in c(1:length(timerange))) {
+  message("start: ", timerange[[i]][1], " end: ", timerange[[i]][2])
+  index = (meta(docs, "Date") <= timerange[[i]][2]) & (meta(docs, "Date") >=  timerange[[i]][1])
+  docs_time = docs[index]
+  dtm_time = DocumentTermMatrix(docs_time, control = list(tokenize = BigramTokenizer))
+  dtms_time = removeSparseTerms(dtm_time, 0.99)
+  m = as.matrix(dtms_time)
+  idf = log(nrow(m)/colSums(m))
+  tf = m
+  tfidf <- m
+  for(word in names(idf)){
+    tfidf[,word] <- tf[,word] * idf[word]
+  }
+  score = colSums(tfidf)
+  ord = order(score)
+  print(score[tail(ord, n=20)])
+}
+```
+
+Các cụm từ có mối tương quan mạnh nhất:
+```{r}
+dtms = removeSparseTerms(dtm, 0.99)
+findAssocs(dtms, c("tham nhũng"), corlimit=0.5)
+findAssocs(dtms, c("hối lộ"), corlimit=0.5)
+```
+
+
+
+
