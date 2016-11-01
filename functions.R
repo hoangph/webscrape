@@ -166,7 +166,7 @@ call_data = function(site, index) {
 call_count = function(site, key_code) {
   setwd(paste(dir,"/",site,"/finalData",sep=""))
   text_uniq = read_csv(paste(site, "_", key_code, ".csv", sep = ""))
-  colnames(text_uniq) = c("link", "date", "category", "title_count", "para_count", "content_count") 
+  colnames(text_uniq) = c("link", "date", "category", "title_count", "para_count", "content_count", "total_count") 
   text_uniq$date = as_date(as.integer(text_uniq$date))
   return(text_uniq)
 }
@@ -268,7 +268,7 @@ plot_by_cat = function(text, count.column, unit, cat) {
   colnames(cat_col) = "cat"
   text = cbind(text, cat_col)
   ggplot(text[text$contain != 0,], aes(x = get(unit))) +
-    geom_bar() + facet_wrap(~cat)
+    geom_bar(fill="#CC0000") + facet_wrap(~cat)
 }
 
 plot_total = function(text, count.column, unit) {
@@ -283,7 +283,7 @@ plot_total = function(text, count.column, unit) {
   }
   text$contain = as.double(text[,count_index] > 0)
   ggplot(text[text$contain != 0,], aes(x = get(unit))) +
-    geom_bar() 
+    geom_bar(fill="#CC0000") 
 }
 # Draw multiple plots
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
