@@ -7,18 +7,17 @@
 #-------------------------#
 ####   CONTROL BOARD   ####
 #-------------------------#
-dir = "D:/Webscrape/webscrape"
+dir = "/home/hoangph2/Documents/Webscraping"
 setwd(dir)
 source("parameter.R")
 source("functions.R")
-call.library()
 
 #---------------------------------------#
 ####        Update database          ####
 #---------------------------------------#
-machine = "src2"
+machine = "scr2"
 operation = "ubuntu"
-if (operation = "ubuntu") filesync("ubuntu", "/usr/bin", paste("final", "sto", machine, "ffs_batch", sep = "."))
+if (operation == "ubuntu") filesync("ubuntu", "/usr/bin", paste("final", "sto", machine, "ffs_batch", sep = "."))
 
 #---------------------------------------#
 ####       Target identifier         ####
@@ -173,8 +172,11 @@ for (j in c(1:nrow(cm_list))) {
 }
 
 # Update temp files: scraper -> Storage (Update)
-while (FALSE) {
-  filesync("C:/Program Files/FreeFileSync", "test.ffs_batch")
+while (TRUE) {
+  filesync(operation = "ubuntu", freefilesync.dir = "/usr/bin", 
+           batchfile = paste("temp", machine, "sto", "ffs_batch", sep = "."))
+  filesync(operation = "ubuntu", freefilesync.dir = "/usr/bin", 
+           batchfile = paste("rmtemp", machine, "ffs_batch", sep = "."))
 }
 
 while (FALSE) {
@@ -200,6 +202,5 @@ while (FALSE) {
   filesync(operation = "windows", freefilesync.dir = "C:/Program Files/FreeFileSync", 
            batchfile = "final.ser.sto.ffs_batch")
 }
-
 
 
