@@ -172,14 +172,16 @@ for (j in c(1:nrow(cm_list))) {
 }
 
 # Update temp files: scraper -> Storage (Update)
-while (TRUE) {
-  filesync(operation = "ubuntu", freefilesync.dir = "/usr/bin", 
-           batchfile = paste("temp", machine, "sto", "ffs_batch", sep = "."))
-  filesync(operation = "ubuntu", freefilesync.dir = "/usr/bin", 
-           batchfile = paste("rmtemp", machine, "ffs_batch", sep = "."))
-}
+
+filesync(operation = "ubuntu", freefilesync.dir = "/usr/bin", 
+         batchfile = paste("temp", machine, "sto", "ffs_batch", sep = "."))
+filesync(operation = "ubuntu", freefilesync.dir = "/usr/bin", 
+         batchfile = paste("rmtemp", machine, "ffs_batch", sep = "."))
 
 while (FALSE) {
+  # Update temp files: storage -> server (update)
+  filesync(operation = "windows", freefilesync.dir = "C:/Program Files/FreeFileSync", 
+           batchfile = "temp.sto.ser.ffs_batch")
   # Merge temp files into final data: on server
   sites = c("dantri", "vnexpress", "laodong", "thanhnien", "vietnamnet", "cafef")
   for (site in sites) {
