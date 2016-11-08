@@ -7,43 +7,47 @@
 #-------------------------#
 ####   CONTROL BOARD   ####
 #-------------------------#
-
-library(tidyverse)
-library(Rfacebook)
-library(lubridate)
-library(rvest)
-library(stringr)
 dir = "D:/Webscrape/webscrape"
-
 setwd(dir)
 source("parameter.R")
 source("functions.R")
+call.library()
+
+#---------------------------------------#
+####        Update database          ####
+#---------------------------------------#
+machine = "src2"
+operation = "ubuntu"
+if (operation = "ubuntu") filesync("ubuntu", "/usr/bin", paste("final", "sto", machine, "ffs_batch", sep = "."))
 
 #---------------------------------------#
 ####       Target identifier         ####
 #---------------------------------------#
 
-
 #### __Targets ####
-
-site = "vietnamnet"
-
-start_date = clean_date("01/01/2006")
+site = "dantri"
+start_date = today() #clean_date("01/01/2006")
 end_date = today()
-
-#### __Other inputs ####
-
-# Do we have to compare with database? (0: no, 1: yes)
-compare = 1
-if (compare == 1){
-  link_list = call_data(site, "_link")
-}
+#### __configurations ####
+update = 0
 
 #---------------------------------------#
 ####            Scrape               ####
 #---------------------------------------#
 
 cm_list = link_par(site)
+link_list = call_final(site, "link")
+link_temp = call_tlink(site, "link")
+link_list = rbind(link_list, link_temp) %>% unique
+rm(link_temp)
+
+if (update == 1) {
+  latest.data = call_final(site, year(end_date))
+  start_date = max(latest.data$date)
+  rm(latest.data)
+  gc()
+}
+
 for (j in c(1:nrow(cm_list))) {
   code = as.character(cm_list$tencm[j])
   source = cm_list$linkcm[j]
@@ -55,10 +59,6 @@ for (j in c(1:nrow(cm_list))) {
   article_selector = par[["article_selector"]]
   save_dir = par[["save_dir"]]
   #rm(par)
-  # Check xem chuyen muc da scrape chua
-  # NOTE: can file data cu co ten giong vs ten chuyen muc 
-  scraped = 0
-  if ("link_list" %in% ls()) {scraped = 1}
   
   #___Vong lap de lay link####
   # Starting point
@@ -69,7 +69,6 @@ for (j in c(1:nrow(cm_list))) {
   e_index = str_locate(file_list,pattern = "_.csv")[,1]
   k_index = str_sub(file_list, k_index+4, p_index-1)
   p_index = str_sub(file_list, p_index+4, e_index-1)
-  
   k = max(as.integer(k_index[!is.na(k_index)])) + 1
   i = max(as.integer(p_index[!is.na(p_index)])) + 1
   if (k==-Inf) {k = 1}
@@ -78,8 +77,10 @@ for (j in c(1:nrow(cm_list))) {
   # Loop
   ok = TRUE
   while (ok) {
-    # Lay 200 link trong chuyen muc mot luc
-    temp = rep(NA, 200)
+    # Lay nhieu link trong chuyen muc mot luc
+    if (update == 1) temp = rep(NA, 20)
+    if (update != 1) temp = rep(NA, 200)
+    temp = rep(NA, 20)
     final = list(link = temp, title = temp, date = temp, content = temp)
     col_names = c("link", "title", "date", "content")
     rm(temp)
@@ -109,7 +110,7 @@ for (j in c(1:nrow(cm_list))) {
         link[str_sub(link,1,4)!="http"] = paste(link_prefix,link[str_sub(link,1,4)!="http"],sep="")
         title = link_list_result[[3]]
         # Sua loi link bi lap lai
-        index_rm = which(str_sub(as.character(title),1,3) %in% "\n  " )
+        index_rm = which(str_sub(as.character(title),1,3) %in% c("\n  ",""))
         if (length(index_rm) > 0) {
           link = link[-index_rm]
           title = title[-index_rm]
@@ -121,13 +122,13 @@ for (j in c(1:nrow(cm_list))) {
           next
         }
         # _____Check xem link da scrape tu truoc chua ####
-        if (scraped==1) {
+        # _____NOTE: neu update thi chap nhan lap bai de tranh k dung duoc vong lap
+        if (update != 1) {
           index_get = which(is.na(match(link, link_list$link)))
           link = link[index_get]
           title = title[index_get]
           rm(index_get)
         }
-        
         # _____Dien link vao list  ####
         final = list_fill(list = final, vector = link, index = "link") %>% 
           list_fill(vector = title, index = "title")
@@ -148,20 +149,13 @@ for (j in c(1:nrow(cm_list))) {
         final[["date"]][a]    <- as_date(page[[2]])
         final[["content"]][a] <- as.character(page[[3]])
       }
-      # 50 bai thi save 1 lan
-      if (save_count == ceiling(article_no/2)) {
-        #cat("Saving...\n")
-        #assign(paste("final",k,sep=""), final)
-        #save_list_csv(final,save_dir,code,col_names,suffix = paste("file",k,"page",i-1,sep=""))
-        save_count = save_count + 1
-      } else {save_count = save_count + 1}
     }
     # Check xem bai cuoi cung da vuot qua gioi han thoi gian chua
     last_date = as_date(as.integer(final[["date"]][max(which(!is.na(final[["date"]])&final[["date"]]!="error"))]))
     if (last_date < start_date) { ok = FALSE } 
     if (ok == FALSE) {
       message("Done scraping with specified time range. Saving...")
-      save_list_csv(final,save_dir,code,col_names,suffix = paste("file",k,"page",i-1,sep=""))
+      save_list_csv(final, save_dir, code, col_names, suffix = paste("file",k,"page",i-1,sep=""))
     } else {
       cat("Saving...\n")
       save_list_csv(final,save_dir,code,col_names,suffix = paste("file",k,"page",i-1,sep=""))
@@ -169,16 +163,43 @@ for (j in c(1:nrow(cm_list))) {
       gc()
     }
   }
-  # merge cac file da scrape cua cac chuyen muc truoc va lay link de so sanh
-  merge_result = merge_files(save_dir, code)
-  setwd(paste(dir,"/",site,"/finalData",sep=""))
-  if (length(list.files())!=0) {
-    link_list = call_data(site,"_link")
-    colnames(link_list) = "link"
-    link_list = rbind(link_list, merge_result[,1]) %>% unique()
-  } else { link_list = merge_result[,1] %>% unique() }
+  # merge cac file da scrape cua cac chuyen muc va lay link de so sanh
+  merge_result = merge_temp(save_dir, code)
+  link_list = rbind(link_list, merge_result[,1]) %>% unique()
+  setwd(paste(dir,"/", site, "/tempLink",sep=""))
+  write_excel_csv(merge_result[,1], paste(site,"_link.csv", sep=""))
   rm(merge_result)
-  write_excel_csv(link_list, paste(site,"_link.csv",sep=""))
   gc()
 }
+
+# Update temp files: scraper -> Storage (Update)
+while (FALSE) {
+  filesync("C:/Program Files/FreeFileSync", "test.ffs_batch")
+}
+
+while (FALSE) {
+  # Merge temp files into final data: on server
+  sites = c("dantri", "vnexpress", "laodong", "thanhnien", "vietnamnet", "cafef")
+  for (site in sites) {
+    cm_list = link_par(site)
+    par = node_par(site, code)
+    save_dir = par[["save_dir"]]
+    new.data = merge_temp(save_dir, code = unique(cm_list$tencm))
+    update_final(x = new.data, site = site)
+  }
+  # Delete temp files in server
+  for (site in sites) {
+    setwd(paste(dir,"ffs_batch", sep = "/"))
+    filesync(operation = "windows", freefilesync.dir = "C:/Program Files/FreeFileSync", 
+             batchfile = paste(site, "rm", "temp", "ser", "ffs_batch", sep = "."))
+  }
+}
+
+# Update final files: server -> Storage (Mirror)
+while (FALSE) {
+  filesync(operation = "windows", freefilesync.dir = "C:/Program Files/FreeFileSync", 
+           batchfile = "final.ser.sto.ffs_batch")
+}
+
+
 

@@ -1,13 +1,16 @@
 ################################################-
 #####  Written by Hoang Phan. September 2016 
 ################################################-
-library(tidyverse)
-library(Rfacebook)
-library(lubridate)
-library(rvest)
-library(stringr)
-library(tm)
-library(stringi)
+call.library = function() {
+  library(tidyverse)
+  library(Rfacebook)
+  library(lubridate)
+  library(rvest)
+  library(stringr)
+  library(tm)
+  library(stringi)
+  library(purrr)
+}
 
 ###--------------------------------###
 ####   General purpose functions  ####
@@ -121,7 +124,7 @@ list_fill = function(list, vector, index) {
 }
 
 # Merge files
-merge_files = function(directory, code) {
+merge_temp = function(directory, code) {
   setwd(directory)
   text = c()
   merged = c()
@@ -146,21 +149,35 @@ merge_files = function(directory, code) {
   return(text_uniq)
 }
 
-# Call data
-call_data = function(site, index) {
-  setwd(paste(dir,"/",site,"/finalData",sep=""))
+# Call files
+call_file = function(file.type, site, index) {
+  if (file.type == "final") setwd(paste(dir,"/",site,"/finalData",sep=""))
+  if (file.type == "temp") setwd(paste(dir,"/",site,"/tempData",sep=""))
+  if (file.type == "tlink") setwd(paste(dir,"/",site,"/tempLink",sep=""))
   text = c()
   for (i in c(1:length(index))) {
-    text_uniq = read_csv(paste(site, index[i], ".csv", sep = ""))
-    if (index[i] == "_link") {colnames(text_uniq) = "link"} else {
-      colnames(text_uniq) = c("link", "title", "date", "content", "category") 
-      text_uniq$date = as_date(as.integer(text_uniq$date))
+    file.name = paste(site, "_", index[i], ".csv", sep = "")
+    if (file.name %in% list.files()) {
+      text_uniq = read_csv(file.name)
+      if (str_detect(index[i],"link")) {colnames(text_uniq) = "link"} 
+      else {
+        colnames(text_uniq) = c("link", "title", "date", "content", "category") 
+        text_uniq$date = as_date(as.integer(text_uniq$date))
+      }
+      text = rbind(text, text_uniq)
+      rm(text_uniq)
     }
-    text = rbind(text, text_uniq)
-    rm(text_uniq)
   }
   return(text)
 }
+
+
+# Call data (raw, link, process)
+call_final = partial(call_file, file.type = "final")
+# Call temp files
+call_temp = partial(call_file, file.type = "temp")
+# Call temp link list
+call_tlink = partial(call_file, file.type = "tlink")
 
 # Call count result
 call_count = function(site, key_code) {
@@ -169,6 +186,14 @@ call_count = function(site, key_code) {
   colnames(text_uniq) = c("link", "date", "category", "title_count", "para_count", "content_count", "total_count") 
   text_uniq$date = as_date(as.integer(text_uniq$date))
   return(text_uniq)
+}
+
+# Backup/Copy files using Freefilesync
+filesync = function(operation, freefilesync.dir, batchfile) {
+  if (operation == "ubuntu") command = "FreeFileSync "
+  if (operation == "windows") command = "FreeFileSync.exe "
+  setwd(freefilesync.dir)
+  system(paste(command , dir, "/ffs_batch/", batchfile, sep = ""))
 }
 
 # Examine date
@@ -215,15 +240,15 @@ first_real_text = function(string, n) {
 }
 
 # Append new data in yearly database
-insert_data = function(x, site) {
+update_final = function(x, site) {
   year_col = year(x$date)
   year = unique(year_col)
   for (y in year) {
-    data = call_data(site,paste("_", y, sep = ""))
+    data = call_final(site, y)
     if (is.na(y)) {
       new = x[is.na(year_col),]
     } else {
-      new = x[year(x$date) == y,]
+      new = x[!is.na(year_col) & year_col == y,]
     }
     data = rbind(data, new)
     data = data[!duplicated(data$link),]
@@ -233,6 +258,25 @@ insert_data = function(x, site) {
     rm(data, new)
   }
 }
+
+# Create list of links
+create.linklist = function(site, start.year, end.year) {
+  par = node_par(site, code)
+  save_dir = par[["save_dir"]]
+  start.year = as.integer(start.year)
+  end.year = as.integer(end.year)
+  linklist = c()
+  for (year in as.character(c(start.year:end.year))){
+    cat(year, "\n")
+    data = call_data(site, as.character(year))
+    linklist = rbind(linklist, data[,1])
+  }
+  linklist = unique(linklist)
+  colnames(linklist) = "link"
+  setwd(paste(save_dir, "/finalData", sep=""))
+  write_excel_csv(linklist, paste(site,"_link.csv",sep=""))
+}
+
 
 ### Create column of month and year (= starting date)
 time_round = function(x, date_col) {

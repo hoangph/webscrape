@@ -61,6 +61,19 @@ link_par = function(site) {
     cm_list = data.frame(tencm,linkcm)
     rm(tencm,linkcm)
   }
+  
+  # vnexpress.vn
+  if (site == "vnexpress") {
+    tencm = c("phapluat","thoisu","kinhdoanh","giaoduc","congdong")
+    linkcm = c("http://vnexpress.net/tin-tuc/phap-luat/page/",
+               "http://vnexpress.net/tin-tuc/thoi-su/page/",
+               "http://kinhdoanh.vnexpress.net/page/",
+               "http://vnexpress.net/tin-tuc/giao-duc/page/",
+               "http://vnexpress.net/tin-tuc/cong-dong/page/")
+    cm_list = data.frame(tencm,linkcm)
+    rm(tencm,linkcm)
+  }
+  
   # END #
   return(cm_list)
 }
@@ -82,8 +95,7 @@ node_par = function(site, cm) {
     }
     date_selector = ".meta time"
     article_selector = ".clearfix .title"
-    # Save directory
-    save_dir = paste(dir,"/thanhnien",sep="")
+
   }
   
   
@@ -96,8 +108,7 @@ node_par = function(site, cm) {
     content_selector = "#ArticleContent p , strong"
     date_selector = ".ArticleDate"
     article_selector = ".dotter .f-16"
-    # Save directory
-    save_dir = paste(dir,"/vietnamnet",sep="")
+
   }
   
   # dantri.com.vn
@@ -106,11 +117,10 @@ node_par = function(site, cm) {
     link_prefix = "http://dantri.com.vn"
     # Nodes
     source_suffix = ".htm"
-    content_selector = "#divNewsContent p"
+    content_selector = "#divNewsContent, .sapo"
     date_selector = ".tt-capitalize"
     article_selector = ".fon6"
-    # Save directory
-    save_dir = paste(dir,"/dantri",sep="")
+
   }
   
   #laodong.com.vn
@@ -122,9 +132,20 @@ node_par = function(site, cm) {
     content_selector = ".content p, .cms-desc"
     date_selector = ".cms-date"
     article_selector = ".hzol-clear .cms-link"
-    # Save directory
-    save_dir = paste(dir,"/laodong",sep="")
   }
+  
+  # vnexpress
+  if (site == "vnexpress") {
+    # Link prefix
+    link_prefix = ""
+    # Nodes
+    source_suffix = ".html"
+    content_selector = ".short_intro , .Normal"
+    date_selector = ".block_timer"
+    article_selector = "#news_home .txt_link"
+  }
+  # Save directory
+  save_dir = paste(dir, "/", site, "/tempData", sep = "")
   
   # END #
   return(list(link_prefix = link_prefix,

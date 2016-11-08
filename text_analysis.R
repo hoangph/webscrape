@@ -317,7 +317,19 @@ ggplot(tinhthanh_count, aes(x = year, fill = khuvuc)) + geom_bar() + scale_x_dis
 
 ### Most frequently mentioned words
 ##### Document term matrix (bigram)
-BigramTokenizer <- function(x) unlist(lapply(ngrams(words(x), 2), paste, collapse = " "), use.names = FALSE)
+setwd(dir)
+bidict = read_csv("bidict.csv")
+Bigram = function(x) {
+  w = words(x)
+  w = ngrams(w, 2)
+  w = vapply(w, paste, "", collapse = " ") %>% unlist()
+  intersect(w, bidict)
+}
+
+BigramTokenizer <-
+  function(x)
+    unlist(lapply(ngrams(words(x), 2), paste, collapse = " "), use.names = FALSE)
+
 docs = VCorpus(VectorSource(article$content))
 dtm = DocumentTermMatrix(docs, control = list(tokenize = BigramTokenizer))
 freq <- colSums(as.matrix(dtm))
