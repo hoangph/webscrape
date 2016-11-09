@@ -74,6 +74,33 @@ link_par = function(site) {
     rm(tencm,linkcm)
   }
   
+  # vneconomy.vn
+  if (site == "vneconomy") {
+    tencm = c("thoisu","taichinh","chungkhoan","doanhnhan","diaoc","thitruong","cuocsongso")
+    linkcm = c("http://vneconomy.vn/thoi-su/trang-",
+               "http://vneconomy.vn/tai-chinh/trang-",
+               "http://vneconomy.vn/chung-khoan/trang-",
+               "http://vneconomy.vn/doanh-nhan/trang-",
+               "http://vneconomy.vn/bat-dong-san/trang-",
+               "http://vneconomy.vn/thi-truong/trang-",
+               "http://vneconomy.vn/cuoc-song-so/trang-")
+    cm_list = data.frame(tencm,linkcm)
+    rm(tencm,linkcm)
+  }
+  
+  # ndh.vn
+  if (site == "ndh") {
+    tencm = c("vimo", "taichinh", "doanhnghiep", "chungkhoan", "batdongsan", "hanghoa", "taichinhcanhan")
+    linkcm = c("http://ndh.vn/vi-mo-c145/trang-",
+               "http://ndh.vn/tai-chinh-c149/trang-",
+               "http://ndh.vn/doanh-nghiep-c147/trang-",
+               "http://ndh.vn/chung-khoan-c146/trang-",
+               "http://ndh.vn/bat-dong-san-c148/trang-",
+               "http://ndh.vn/hang-hoa-c150/trang-",
+               "http://ndh.vn/tai-chinh-ca-nhan/trang-" )
+    cm_list = data.frame(tencm,linkcm)
+    rm(tencm,linkcm)
+  }
   # END #
   return(cm_list)
 }
@@ -143,6 +170,28 @@ node_par = function(site, cm) {
     content_selector = ".short_intro , .Normal"
     date_selector = ".block_timer"
     article_selector = "#news_home .txt_link"
+  }
+  
+  # vneconomy
+  if (site == "vneconomy") {
+    # Nodes
+    source_suffix = ".htm"
+    article_selector = ".flie .titletopmid2"
+    content_selector = ".detailsbaiviet , strong"
+    date_selector = ".timverbvvth"
+    # Link prefix
+    link_prefix = "http://vneconomy.vn"
+  }
+  
+  # ndh
+  if (site == "ndh") {
+    # Nodes
+    source_suffix = ".htm"
+    article_selector = "#listNews div.tit-story h2 a"
+    content_selector = ".shapo-detail , .main-detail p"
+    date_selector = ".nav-detail .sub-time"
+    # Link prefix
+    link_prefix = "http://ndh.vn"
   }
   # Save directory
   save_dir = paste(dir, "/", site, "/tempData", sep = "")

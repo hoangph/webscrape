@@ -11,6 +11,7 @@ call.library = function() {
   library(stringi)
   library(purrr)
 }
+call.library()
 
 ###--------------------------------###
 ####   General purpose functions  ####
@@ -74,7 +75,7 @@ read_page = function(url, content_selector, date_selector) {
   errorPage = 1
   cat("Scraping: ", url,"\n")
   # try catch to avoid timeout error
-  page_html = tryRead(url, 10, 5)
+  page_html = tryRead(url, 5, 2)
   if (page_html[[1]] == 1) {
     errorPage = 1
     return(list(errorPage, 1, 1))
@@ -129,24 +130,26 @@ merge_temp = function(directory, code) {
   text = c()
   merged = c()
   file_index = which(str_sub(list.files(), 1, str_locate(list.files(),"_")[,1]-1) %in% code)
-  c = 0
-  for (i in file_index) {
-    c = c+1
-    message(c,"/",length(file_index))
-    table = read_csv(list.files()[i])
-    code = str_split(list.files()[i],"_")[[1]][1]
-    table$cm = rep(code, nrow(table))
-    text = rbind(text, table)
+  if (length(file_index) > 0) {
+    c = 0
+    for (i in file_index) {
+      c = c+1
+      message(c,"/",length(file_index))
+      table = read_csv(list.files()[i])
+      code = str_split(list.files()[i],"_")[[1]][1]
+      table$cm = rep(code, nrow(table))
+      text = rbind(text, table)
+    }
+    colnames(text) = c("link", "title", "date", "content", "category")
+    # xoa nhung link bi lap lai
+    text_uniq = text[!duplicated(text$link),]
+    text_uniq$date = as_date(as.integer(text_uniq$date))
+    rm(text, table)
+    # Xem date
+    message("min date: ", min(text_uniq$date[!is.na(text_uniq$date)]))
+    message("max date: ", max(text_uniq$date[!is.na(text_uniq$date)]))
+    return(text_uniq)
   }
-  colnames(text) = c("link", "title", "date", "content", "category")
-  # xoa nhung link bi lap lai
-  text_uniq = text[!duplicated(text$link),]
-  text_uniq$date = as_date(as.integer(text_uniq$date))
-  rm(text, table)
-  # Xem date
-  message("min date: ", min(text_uniq$date[!is.na(text_uniq$date)]))
-  message("max date: ", max(text_uniq$date[!is.na(text_uniq$date)]))
-  return(text_uniq)
 }
 
 # Call files
@@ -159,7 +162,7 @@ call_file = function(file.type, site, index) {
     file.name = paste(site, "_", index[i], ".csv", sep = "")
     if (file.name %in% list.files()) {
       text_uniq = read_csv(file.name)
-      if (str_detect(index[i],"link")) {colnames(text_uniq) = "link"} 
+      if (!is.na(index[i]) & str_detect(index[i],"link")) {colnames(text_uniq) = "link"} 
       else {
         colnames(text_uniq) = c("link", "title", "date", "content", "category") 
         text_uniq$date = as_date(as.integer(text_uniq$date))
@@ -255,7 +258,14 @@ update_final = function(x, site) {
     cat("writing ", y, "\n")
     setwd(paste(dir,"/",site,"/finalData",sep=""))
     write_excel_csv(data, paste(site, "_", y, ".csv", sep = ""))
-    rm(data, new)
+    link = as.data.frame(data$link)
+    colnames(link) = "link"
+    link.list = linkcall_final(site, "link")
+    colnames(link.list) = "link"
+    link.list = rbind(link.list, link) %>% unique()
+    write_excel_csv(link.list, paste(site, "_link.csv", sep = ""))
+    rm(data, new, link, link.list)
+    gc()
   }
 }
 
@@ -268,13 +278,15 @@ create.linklist = function(site, start.year, end.year) {
   linklist = c()
   for (year in as.character(c(start.year:end.year))){
     cat(year, "\n")
-    data = call_data(site, as.character(year))
+    data = call_final(site, as.character(year))
     linklist = rbind(linklist, data[,1])
   }
   linklist = unique(linklist)
-  colnames(linklist) = "link"
-  setwd(paste(save_dir, "/finalData", sep=""))
-  write_excel_csv(linklist, paste(site,"_link.csv",sep=""))
+  if (length(linklist) > 0) {
+    colnames(linklist) = "link"
+    setwd(paste(dir, "/", site, "/finalData", sep=""))
+    write_excel_csv(linklist, paste(site,"_link.csv",sep=""))
+  }
 }
 
 
