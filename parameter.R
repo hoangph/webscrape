@@ -50,14 +50,13 @@ link_par = function(site) {
   
   # laodong.com.vn
   if (site == "laodong") {
-    tencm = c("thoisuxahoi","phapluat","kinhte","congdoan","suckhoe","vanhoagiaitri","tuvanphapluat")
+    tencm = c("thoisuxahoi","phapluat","kinhte","congdoan","suckhoe","vanhoagiaitri")
     linkcm = c("http://laodong.com.vn/thoi-su-xa-hoi/?trang=",
                "http://laodong.com.vn/phap-luat/?trang=",
                "http://laodong.com.vn/kinh-te/?trang=",
                "http://laodong.com.vn/cong-doan/?trang=",
                'http://laodong.com.vn/suc-khoe/?trang=',
-               "http://laodong.com.vn/van-hoa-giai-tri/?trang=",
-               "http://laodong.com.vn/tu-van-phap-luat/?trang=")
+               "http://laodong.com.vn/van-hoa-giai-tri/?trang=")
     cm_list = data.frame(tencm,linkcm)
     rm(tencm,linkcm)
   }
@@ -176,7 +175,7 @@ node_par = function(site, cm) {
   if (site == "vneconomy") {
     # Nodes
     source_suffix = ".htm"
-    article_selector = ".flie .titletopmid2"
+    article_selector = ".flie .titletopmid2 , .titletopfooter, .ultopmidtitle, .hdlcmtitlel"
     content_selector = ".detailsbaiviet , strong"
     date_selector = ".timverbvvth"
     # Link prefix

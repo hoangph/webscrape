@@ -9,7 +9,11 @@ for (j in c(1:nrow(cm_list))) {
   article_selector = par[["article_selector"]]
   save_dir = par[["save_dir"]]
   #rm(par)
-  
+  if (update == 1) {
+    d = last_date_table$date[last_date_table$category == code]
+    if (length(d) > 0) start_date = d
+    rm(d)
+  }
   #___Vong lap de lay link####
   # Starting point
   setwd(save_dir)
@@ -26,31 +30,31 @@ for (j in c(1:nrow(cm_list))) {
   rm(k_index, p_index, e_index)
   # Loop
   ok = TRUE
+    if (exists("skip_cm")) {
+        if (skip_cm > 0) {
+            ok = FALSE
+            skip_cm = skip_cm - 1
+        }
+        if (skip_cm == 0) rm(skip_cm)
+    }
   while (ok) {
     # Lay nhieu link trong chuyen muc mot luc
     if (update == 1) temp = rep(NA, 20)
     if (update != 1) temp = rep(NA, 200)
-    temp = rep(NA, 20)
+    if (update == 2) temp = rep(NA, 20)
     final = list(link = temp, title = temp, date = temp, content = temp)
     col_names = c("link", "title", "date", "content")
     rm(temp)
     # Dien vao
     skipped = c()
     last_count = 0
+    
     while (sum(is.na(final[["link"]])) > 0) {
       cat("Looking into page", i," section: ", as.character(code),"\n")
       link_list_result = source %>% paste(i,source_suffix,sep = "") %>% 
         get_article(article_selector)
       if (length(link_list_result[[3]])==0) { last_count = last_count + 1 }
-      if (last_count == 20) { 
-        message("finising")
-        ok = FALSE # chuyen qua chuyen muc khac
-        lastrecord = max(which(!is.na(final[["link"]])))
-        final[["link"]] = final[["link"]][1:lastrecord]
-        final[["title"]] = final[["title"]][1:lastrecord]
-        final[["date"]] = final[["date"]][1:lastrecord]
-        final[["content"]] = final[["content"]][1:lastrecord]
-      }
+      
       if (link_list_result[1]==1) {
         message("Skipped page ", i)
         skipped = c(skipped, i)
@@ -84,6 +88,15 @@ for (j in c(1:nrow(cm_list))) {
           list_fill(vector = title, index = "title")
         i = i+1
       }
+      if (last_count == 20) { 
+        message("finising")
+        ok = FALSE # chuyen qua chuyen muc khac
+        lastrecord = max(which(!is.na(final[["link"]])))
+        final[["link"]] = final[["link"]][1:lastrecord]
+        final[["title"]] = final[["title"]][1:lastrecord]
+        final[["date"]] = final[["date"]][1:lastrecord]
+        final[["content"]] = final[["content"]][1:lastrecord]
+      }
     }
     
     #___Doc cac bai trong list link vua lay ####
@@ -101,7 +114,9 @@ for (j in c(1:nrow(cm_list))) {
       }
     }
     # Check xem bai cuoi cung da vuot qua gioi han thoi gian chua
-    last_date = as_date(as.integer(final[["date"]][max(which(!is.na(final[["date"]])&final[["date"]]!="error"))]))
+    message("checking last record")
+    last_date = as_date(as.integer(final[["date"]][max(which(!is.na(final[["date"]]) 
+                                                             & as.character(final[["date"]])!="error"))]))
     if (last_date < start_date) { ok = FALSE } 
     if (ok == FALSE) {
       message("Done scraping with specified time range. Saving...")
