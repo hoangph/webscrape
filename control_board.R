@@ -29,7 +29,8 @@ site = "dantri"
 start_date = today() #clean_date("01/01/2006")
 end_date = today()
 #### __configurations ####
-update = 0
+#Update: 0-no, 1-yes, 2-test
+update = 2
 
 #---------------------------------------#
 ####            Scrape               ####
@@ -56,10 +57,12 @@ source("webscheme1.R")
 #---------------------------------------#
 
 # Update temp files: scraper -> Storage (Update)
-filesync(operation = "ubuntu", freefilesync.dir = "/usr/bin", 
-         batchfile = paste("temp", machine, "sto", "ffs_batch", sep = "."))
-filesync(operation = "ubuntu", freefilesync.dir = "/usr/bin", 
-         batchfile = paste("rmtemp", machine, "ffs_batch", sep = "."))
+if (update != 2) {
+  filesync(operation = "ubuntu", freefilesync.dir = "/usr/bin", 
+           batchfile = paste("temp", machine, "sto", "ffs_batch", sep = "."))
+  filesync(operation = "ubuntu", freefilesync.dir = "/usr/bin", 
+           batchfile = paste("rmtemp", machine, "ffs_batch", sep = "."))
+}
 
 while (FALSE) {
   # Update temp files: storage -> server (update)
