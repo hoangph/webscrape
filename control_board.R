@@ -7,8 +7,8 @@
 #-------------------------#
 ####   CONTROL BOARD   ####
 #-------------------------#
-#dir = "/home/hoangph2/Documents/Webscraping"
-dir = "D:/Webscrape/webscrape"
+dir = "/home/hoangph/Documents/Webscrape"
+#dir = "D:/Webscrape/webscrape"
 setwd(dir)
 source("parameter.R")
 source("functions.R")
@@ -16,7 +16,7 @@ source("functions.R")
 #---------------------------------------#
 ####        Update database          ####
 #---------------------------------------#
-machine = "scr2"
+machine = "scr1"
 operation = "ubuntu"
 if (operation == "ubuntu") filesync("ubuntu", "/usr/bin", paste("final", "sto", machine, "ffs_batch", sep = "."))
 
@@ -25,12 +25,12 @@ if (operation == "ubuntu") filesync("ubuntu", "/usr/bin", paste("final", "sto", 
 #---------------------------------------#
 
 #### __Targets ####
-site = "dantri"
-start_date = today() #clean_date("01/01/2006")
+site = "laodong"
+start_date = clean_date("01/01/2006")
 end_date = today()
 #### __configurations ####
 #Update: 0-no, 1-yes, 2-test
-update = 2
+update = 0
 
 #---------------------------------------#
 ####            Scrape               ####
@@ -44,13 +44,30 @@ rm(link_temp)
 
 if (update == 1) {
   latest.data = call_final(site, year(end_date))
-  start_date = max(latest.data$date)
+  last_date_table = c()
+  for (cm in unique(latest.data$category)) {
+    d = max(latest.data$date[latest.data$category == cm])
+    last_date_table = rbind(last_date_table, data.frame(category = cm, date = d))
+    rm(d)
+  }
   rm(latest.data)
   gc()
 }
 
 setwd(dir)
 source("webscheme1.R")
+
+if (update == 2) {
+    setwd(save_dir)
+    testdata = c()
+    for (file in list.files()) {
+        t = read_csv(file)
+        testdata = rbind(testdata, t) %>% unique()
+    }
+    gc()
+}
+sum(testdata$content == "")
+
 
 #---------------------------------------#
 ####          Syncronize             ####
@@ -59,9 +76,9 @@ source("webscheme1.R")
 # Update temp files: scraper -> Storage (Update)
 if (update != 2) {
   filesync(operation = "ubuntu", freefilesync.dir = "/usr/bin", 
-           batchfile = paste("temp", machine, "sto", "ffs_batch", sep = "."))
+           batchfile = paste(site, "temp", machine, "sto", "ffs_batch", sep = "."))
   filesync(operation = "ubuntu", freefilesync.dir = "/usr/bin", 
-           batchfile = paste("rmtemp", machine, "ffs_batch", sep = "."))
+           batchfile = paste(site, "rmtemp", machine, "ffs_batch", sep = "."))
 }
 
 while (FALSE) {
