@@ -70,6 +70,11 @@ clean_date = function (date) {
   return(date_d)
 }
 
+# Reformat date: US -> Euro
+format_date = function (date) {
+  format(date, "%d-%m-%Y")
+}
+
 # Read article's content
 read_page = function(url, content_selector, date_selector) {
   errorPage = 1

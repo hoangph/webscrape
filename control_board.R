@@ -12,31 +12,32 @@ dir = "D:/Webscrape/webscrape"
 setwd(dir)
 source("parameter.R")
 source("functions.R")
+machine = "ser"
+operation = "windows"
 
 #---------------------------------------#
 ####        Update database          ####
 #---------------------------------------#
-#machine = "scr1"
-#operation = "ubuntu"
-#if (operation == "ubuntu") filesync("ubuntu", "/usr/bin", paste("final", "sto", machine, "ffs_batch", sep = "."))
+if (machine != "ser" & operation == "ubuntu") filesync("ubuntu", "/usr/bin", paste("final", "sto", machine, "ffs_batch", sep = "."))
 
 #---------------------------------------#
 ####       Target identifier         ####
 #---------------------------------------#
 
 #### __Targets ####
-site = "vneconomy"
+site = "dantri"
 start_date = clean_date("01/01/2010")
 end_date = today()
 #### __configurations ####
 #Update: 0-no, 1-yes, 2-test
-update = 0
+update = 2
+if (update == 2) start_date = today()
 
 #---------------------------------------#
 ####            Scrape               ####
 #---------------------------------------#
 
-cm_list = link_par(site)
+
 link_list = call_final(site, "link")
 link_temp = call_tlink(site, "link")
 link_list = rbind(link_list, link_temp) %>% unique
@@ -54,9 +55,9 @@ if (update == 1) {
   gc()
 }
 
-if (update == 2) start_date = today()
+
 setwd(dir)
-source("webscheme1.R")
+source("webscheme2.R")
 
 if (update == 2) {
     setwd(save_dir)
@@ -68,8 +69,6 @@ if (update == 2) {
     gc()
     sum(testdata$content == "")
 }
-
-
 
 #---------------------------------------#
 ####          Syncronize             ####

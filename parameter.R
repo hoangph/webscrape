@@ -36,14 +36,14 @@ link_par = function(site) {
   # dantri.com.vn
   if (site == "dantri") {
     tencm = c("sukien", "xahoi","giaoduc","kinhdoanh","vanhoa","phapluat","nhipsongtre","suckhoe")
-    linkcm = c("http://dantri.com.vn/su-kien/trang-",
-               "http://dantri.com.vn/xa-hoi/trang-",
-               "http://dantri.com.vn/giao-duc-khuyen-hoc/trang-",
-               "http://dantri.com.vn/kinh-doanh/trang-",
-               "http://dantri.com.vn/van-hoa/trang-",
-               "http://dantri.com.vn/phap-luat/trang-",
-               "http://dantri.com.vn/nhip-song-tre/trang-",
-               "http://dantri.com.vn/suc-khoe/trang-")
+    linkcm = c("http://dantri.com.vn/su-kien/",
+               "http://dantri.com.vn/xa-hoi/",
+               "http://dantri.com.vn/giao-duc-khuyen-hoc/",
+               "http://dantri.com.vn/kinh-doanh/",
+               "http://dantri.com.vn/van-hoa/",
+               "http://dantri.com.vn/phap-luat/",
+               "http://dantri.com.vn/nhip-song-tre/",
+               "http://dantri.com.vn/suc-khoe/")
     cm_list = data.frame(tencm,linkcm)
     rm(tencm,linkcm)
   }
