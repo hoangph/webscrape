@@ -54,7 +54,12 @@ for (j in c(1:nrow(cm_list))) {
       link_list_result = source %>% paste(i,source_suffix,sep = "") %>% 
         get_article(article_selector)
       if (length(link_list_result[[3]])==0) { last_count = last_count + 1 }
-      
+      if (length(link_list_result[[3]]) < 5) {
+        if (!exists("linkcheck")) { linkcheck = link_list_result[[3]] }
+        else {
+          if (mean(linkcheck == link_list_result[[3]])==1) last_count = last_count + 1
+        }
+        }
       if (link_list_result[1]==1) {
         message("Skipped page ", i)
         skipped = c(skipped, i)
@@ -115,7 +120,7 @@ for (j in c(1:nrow(cm_list))) {
     }
     # Check xem bai cuoi cung da vuot qua gioi han thoi gian chua
     message("checking last record")
-    last_date = as_date(as.integer(final[["date"]][max(which(!is.na(final[["date"]]) 
+    last_date = as_date(as.integer(final[["date"]][min(which(!is.na(final[["date"]]) 
                                                              & as.character(final[["date"]])!="error"))]))
     if (last_date < start_date) { ok = FALSE } 
     if (ok == FALSE) {

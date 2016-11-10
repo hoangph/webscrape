@@ -89,14 +89,13 @@ link_par = function(site) {
   
   # ndh.vn
   if (site == "ndh") {
-    tencm = c("vimo", "taichinh", "doanhnghiep", "chungkhoan", "batdongsan", "hanghoa", "taichinhcanhan")
+    tencm = c("vimo", "taichinh", "doanhnghiep", "chungkhoan", "batdongsan", "hanghoa")
     linkcm = c("http://ndh.vn/vi-mo-c145/trang-",
                "http://ndh.vn/tai-chinh-c149/trang-",
                "http://ndh.vn/doanh-nghiep-c147/trang-",
                "http://ndh.vn/chung-khoan-c146/trang-",
                "http://ndh.vn/bat-dong-san-c148/trang-",
-               "http://ndh.vn/hang-hoa-c150/trang-",
-               "http://ndh.vn/tai-chinh-ca-nhan/trang-" )
+               "http://ndh.vn/hang-hoa-c150/trang-" )
     cm_list = data.frame(tencm,linkcm)
     rm(tencm,linkcm)
   }

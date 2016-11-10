@@ -7,8 +7,8 @@
 #-------------------------#
 ####   CONTROL BOARD   ####
 #-------------------------#
-dir = "/home/hoangph/Documents/Webscrape"
-#dir = "D:/Webscrape/webscrape"
+#dir = "/home/hoangph/Documents/Webscrape"
+dir = "D:/Webscrape/webscrape"
 setwd(dir)
 source("parameter.R")
 source("functions.R")
@@ -16,17 +16,17 @@ source("functions.R")
 #---------------------------------------#
 ####        Update database          ####
 #---------------------------------------#
-machine = "scr1"
-operation = "ubuntu"
-if (operation == "ubuntu") filesync("ubuntu", "/usr/bin", paste("final", "sto", machine, "ffs_batch", sep = "."))
+#machine = "scr1"
+#operation = "ubuntu"
+#if (operation == "ubuntu") filesync("ubuntu", "/usr/bin", paste("final", "sto", machine, "ffs_batch", sep = "."))
 
 #---------------------------------------#
 ####       Target identifier         ####
 #---------------------------------------#
 
 #### __Targets ####
-site = "laodong"
-start_date = clean_date("01/01/2006")
+site = "vneconomy"
+start_date = clean_date("01/01/2010")
 end_date = today()
 #### __configurations ####
 #Update: 0-no, 1-yes, 2-test
@@ -54,6 +54,7 @@ if (update == 1) {
   gc()
 }
 
+if (update == 2) start_date = today()
 setwd(dir)
 source("webscheme1.R")
 
@@ -65,8 +66,9 @@ if (update == 2) {
         testdata = rbind(testdata, t) %>% unique()
     }
     gc()
+    sum(testdata$content == "")
 }
-sum(testdata$content == "")
+
 
 
 #---------------------------------------#
