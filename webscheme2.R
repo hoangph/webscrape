@@ -75,7 +75,7 @@ for (j in c(1:nrow(cm_list))) {
         }
       }
       
-      if (last_count == 20) final.record.signal == 1
+      if (last_count >= 20) final.record.signal = 1
       if (link_list_result[1]==1) {
         message("Skipped page ", i)
         skipped = c(skipped, i)
