@@ -25,7 +25,7 @@ if (machine != "ser" & operation == "ubuntu") filesync("ubuntu", "/usr/bin", pas
 #---------------------------------------#
 
 #### __Targets ####
-site = "dantri"
+site = "congluan"
 start_date = clean_date("01/01/2010")
 end_date = today()
 #### __configurations ####
@@ -57,7 +57,7 @@ if (update == 1) {
 
 
 setwd(dir)
-source("webscheme2.R")
+source("webscheme1.R")
 
 if (update == 2) {
     setwd(save_dir)
@@ -83,6 +83,9 @@ if (update != 2) {
 }
 
 while (FALSE) {
+  setwd(dir)
+  source("parameter.R")
+  source("functions.R")
   # Update temp files: storage -> server (update)
   filesync(operation = "windows", freefilesync.dir = "C:/Program Files/FreeFileSync", 
            batchfile = "temp.sto.ser.ffs_batch")
@@ -90,10 +93,10 @@ while (FALSE) {
   filesync(operation = "windows", freefilesync.dir = "C:/Program Files/FreeFileSync", 
            batchfile = "rmtemp.sto.ffs_batch")
   # Merge temp files into final data: on server
-  sites = c("dantri", "vnexpress", "laodong", "thanhnien", "vietnamnet")
+  sites = c("dantri", "vnexpress", "laodong", "thanhnien", "vietnamnet", "vneconomy")
   for (site in sites) {
     cm_list = link_par(site)
-    par = node_par(site, code)
+    par = node_par(site, cm = unique(cm_list$tencm)[1])
     save_dir = par[["save_dir"]]
     new.data = merge_temp(save_dir, code = unique(cm_list$tencm))
     if (!is.null(new.data)) update_final(x = new.data, site = site)

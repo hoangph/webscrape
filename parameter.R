@@ -99,6 +99,64 @@ link_par = function(site) {
     cm_list = data.frame(tencm,linkcm)
     rm(tencm,linkcm)
   }
+  
+  # baodatviet.vn
+  if (site == "baodatviet") {
+    tencm = c("chinhtrixahoi","diendantrithuc", "khoahoc", "kinhte", "quocphong", "batdongsan", "phapluat")
+    linkcm = c("http://baodatviet.vn/chinh-tri-xa-hoi/?paged=",
+               "http://baodatviet.vn/dien-dan-tri-thuc/?paged=",
+               "http://baodatviet.vn/khoa-hoc/?paged=",
+               "http://baodatviet.vn/kinh-te/?paged=",
+               "http://baodatviet.vn/quoc-phong/?paged=",
+               "http://baodatviet.vn/bat-dong-san/?paged=",
+               "http://baodatviet.vn/phap-luat/?paged="
+               )
+    cm_list = data.frame(tencm,linkcm)
+    rm(tencm,linkcm)
+  }
+  
+  # qdnd.vn
+  if (site == "qdnd") {
+    tencm = c("")
+    linkcm = c("http://www.qdnd.vn/chinh-tri/tin-tuc-su-kien/p/",
+               "http://www.qdnd.vn/chinh-tri/cac-van-de/p/",
+               "http://www.qdnd.vn/chinh-tri/doi-ngoai-doi-ngoai-quoc-phong/p/",
+               "http://www.qdnd.vn/chinh-tri/xa-luan/p/",
+               "http://www.qdnd.vn/quoc-phong-an-ninh/tin-tuc/p/" )
+    cm_list = data.frame(tencm,linkcm)
+    rm(tencm,linkcm)
+  }
+  
+  # congluan.vn
+  if (site == "congluan") {
+    tencm = c("thoisu", "diendan", "baochi", "phapluatdieutra", "doisongxahoi", "vanhoa",
+              "giaitri", "kinhte", "bandoc")
+    linkcm = c("http://congluan.vn/cat/thoi-su/page/",
+               "http://congluan.vn/cat/dien-dan/page/",
+               "http://congluan.vn/cat/bao-chi/page/",
+               "http://congluan.vn/cat/phap-luat-dieu-tra/page/",
+               "http://congluan.vn/cat/doi-song-xa-hoi/page/",
+               "http://congluan.vn/cat/van-hoa/page/",
+               "http://congluan.vn/cat/giai-tri/page/",
+               "http://congluan.vn/cat/kinh-te/page/",
+               "http://congluan.vn/cat/ban-doc/page/")
+    cm_list = data.frame(tencm,linkcm)
+    rm(tencm,linkcm)
+  }
+  
+  # nguoiduatin.vn
+  if (site == "nguoiduatin") {
+    tencm = c("thoisu", "dachieu", "kinhdoanh", "phapluat", "doison", "congdongmang", "giaitri")
+    linkcm = c("http://www.nguoiduatin.vn/c/thoi-su/page/",
+               "http://www.nguoiduatin.vn/c/da-chieu/page/",
+               "http://www.nguoiduatin.vn/c/kinh-doanh/page/",
+               "http://www.nguoiduatin.vn/c/phap-luat/page/",
+               "http://www.nguoiduatin.vn/c/doi-song/page/",
+               "http://www.nguoiduatin.vn/c/cong-dong-mang/page/",
+               "http://www.nguoiduatin.vn/c/giai-tri/page/")
+    cm_list = data.frame(tencm,linkcm)
+    rm(tencm,linkcm)
+  }
   # END #
   return(cm_list)
 }
@@ -113,7 +171,7 @@ node_par = function(site, cm) {
     link_prefix = "http://thanhnien.vn"
     # Nodes
     source_suffix = ".html"
-    if (code =="toiviet") {
+    if (cm =="toiviet") {
       content_selector = "strong , #abody div, #chapeau div"
     } else {
       content_selector = ".content div div"
@@ -191,9 +249,54 @@ node_par = function(site, cm) {
     # Link prefix
     link_prefix = "http://ndh.vn"
   }
+  
+  # baodatviet.vn
+  if (site == "baodatviet") {
+    # Nodes
+    source_suffix = ""
+    article_selector = "#left_col .title a"
+    content_selector = ".detail p , .Normal, .lead"
+    date_selector = ".time"
+    # Link prefix
+    link_prefix = "http://baodatviet.vn"
+  }
+  
+  # qdnd.vn
+  if (site == "qdnd") {
+    # Nodes
+    source_suffix = ""
+    article_selector = ".h3cate"
+    content_selector = "#dnn_VIEWSINDEX_ctl00_viewhinone h2, .post-content div"
+    date_selector = ".post-subinfo"
+    # Link prefix
+    link_prefix = "http://qdnd.vn"
+  }
+  
+  # congluan.vn
+  if (site == "congluan") {
+    # Nodes
+    source_suffix = ""
+    article_selector = ".entry-title a"
+    content_selector = "p"
+    date_selector = ".date-published"
+    # Link prefix
+    link_prefix = "http://congluan.vn"
+  }
   # Save directory
   save_dir = paste(dir, "/", site, "/tempData", sep = "")
   
+  # nguoiduatin.vn
+  if (site == "nguoiduatin") {
+    # Nodes
+    source_suffix = ""
+    article_selector = ".catPost-list a"
+    content_selector = ".art-lead h2 , #main-detail p"
+    date_selector = ".datetime"
+    # Link prefix
+    link_prefix = "http://nguoiduatin.vn"
+  }
+  # Save directory
+  save_dir = paste(dir, "/", site, "/tempData", sep = "")
   # END #
   return(list(link_prefix = link_prefix,
               source_suffix = source_suffix,

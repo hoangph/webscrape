@@ -66,6 +66,10 @@ get_article = function(url, article_selector) {
 # Translate date format from Vietnamese -> R (English)
 clean_date = function (date) {
   date_s = str_sub(date, str_locate(date,"/")[1]-2,str_locate(date,"/")[1]-2+9)
+  if (is.na(date_s)) { ## Date dang 10.11.2016
+    date = str_replace_all(date, pattern = "\\.", replacement = "/") 
+    date_s = str_sub(date, str_locate(date,"/")[1]-2,str_locate(date,"/")[1]-2+9)
+  }
   date_d = as.Date(date_s,"%d/%m/%Y")
   return(date_d)
 }
@@ -263,15 +267,14 @@ update_final = function(x, site) {
     cat("writing ", y, "\n")
     setwd(paste(dir,"/",site,"/finalData",sep=""))
     write_excel_csv(data, paste(site, "_", y, ".csv", sep = ""))
-    link = as.data.frame(data$link)
-    colnames(link) = "link"
-    link.list = linkcall_final(site, "link")
-    colnames(link.list) = "link"
-    link.list = rbind(link.list, link) %>% unique()
-    write_excel_csv(link.list, paste(site, "_link.csv", sep = ""))
-    rm(data, new, link, link.list)
-    gc()
   }
+  link = as.data.frame(x$link)
+  colnames(link) = "link"
+  link.list = call_final(site, "link")
+  if (!is.null(link.list)) colnames(link.list) = "link"
+  link.list = rbind(link.list, link) %>% unique()
+  write_excel_csv(link.list, paste(site, "_link.csv", sep = ""))
+  gc()
 }
 
 # Create list of links
