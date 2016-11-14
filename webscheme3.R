@@ -1,3 +1,8 @@
+##############################
+##    Scrape by date  ########
+##    1 page / date   ########
+##############################
+#if (update == 2) start_date = clean_date("01-01-2010")
 cm_list = link_par(site)
 for (j in c(1:nrow(cm_list))) {
   code = as.character(cm_list$tencm[j])
@@ -5,14 +10,17 @@ for (j in c(1:nrow(cm_list))) {
   par = node_par(site, code)
   link_prefix = par[["link_prefix"]]
   source_suffix = par[["source_suffix"]]
+  source_pagenumber = par[["source_pagenumber"]]
+  source_dateformat = par[["source_dateformat"]]
   content_selector = par[["content_selector"]]
   date_selector = par[["date_selector"]]
   article_selector = par[["article_selector"]]
   save_dir = par[["save_dir"]]
   #rm(par)
+  #Check bai da scrape gan nhat
   if (update == 1) {
     d = last_date_table$date[last_date_table$category == code]
-    if (length(d) > 0) start_date = d
+    if (length(d) > 0) end_date = d
     rm(d)
   }
   #___Vong lap de lay link####
@@ -25,19 +33,26 @@ for (j in c(1:nrow(cm_list))) {
   k_index = str_sub(file_list, k_index+4, p_index-1)
   p_index = str_sub(file_list, p_index+4, e_index-1)
   k = max(as.integer(k_index[!is.na(k_index)])) + 1
-  i = max(as.integer(p_index[!is.na(p_index)])) + 1
-  if (k==-Inf) {k = 1}
-  if (i==-Inf) {i = 1}
-
+  od = as.Date(p_index[!is.na(p_index)], "%Y-%m-%d")
+  if (k==-Inf | is.na(k)) {k = 1}
+  if (length(od) == 0) {
+    d = end_date
+    i = format(d, source_dateformat)
+  } else {
+    d = od
+    i = format(d, source_dateformat)
+  }
+  
   rm(k_index, p_index, e_index)
+  
   # Loop
   ok = TRUE
   if (exists("skip_cm")) {
-      if (skip_cm > 0) {
-          ok = FALSE
-          skip_cm = skip_cm - 1
-      }
-      if (skip_cm == 0) rm(skip_cm)
+    if (skip_cm > 0) {
+      ok = FALSE
+      skip_cm = skip_cm - 1
+    }
+    if (skip_cm == 0) rm(skip_cm)
   }
   while (ok) {
     # Lay nhieu link trong chuyen muc mot luc
@@ -47,16 +62,31 @@ for (j in c(1:nrow(cm_list))) {
     final = list(link = temp, title = temp, date = temp, content = temp)
     col_names = c("link", "title", "date", "content")
     rm(temp)
-    # Dien vao
     skipped = c()
     last_count = 0
     final.record.signal = 0
+    
+    
+    
+    # Start
     while (sum(is.na(final[["link"]])) > 0) {
-      cat("Looking into page", i," section: ", as.character(code),"\n")
-      link_list_result = source %>% paste(i,source_suffix,sep = "") %>% 
-        get_article(article_selector)
-      if (length(link_list_result[[3]])==0) { last_count = last_count + 1 }
-      if (length(link_list_result[[3]]) != 0 & length(link_list_result[[3]]) < 5) {
+      #
+      p = 0
+      last_daily = 0
+      while (last_daily == 0) {
+        p = p + 1
+        cat("Looking into date", i," page:", p, ", section: ", as.character(code),"\n")      
+        t.link_list_result = source %>% paste(i, "/", source_pagenumber, p, source_suffix, sep = "") %>% 
+          get_article(article_selector)
+        if (length(t.link_list_result[[3]]) == 0) last_daily = 1
+        if (p == 1) {link_list_result = t.link_list_result} else {
+          link_list_result[[2]] = c(link_list_result[[2]], t.link_list_result[[2]])
+          link_list_result[[3]] = c(link_list_result[[3]], t.link_list_result[[3]])
+        }
+      }
+      #
+      if (length(link_list_result[[3]]) == 0) last_count = last_count + 1  
+      if (length(link_list_result[[3]]) != 0 & length(link_list_result[[3]]) < 7) {
         if (!exists("linkcheck")) { linkcheck = link_list_result[[3]] } else {
           if (mean(linkcheck == link_list_result[[3]])==1) last_count = last_count + 1
         }
@@ -66,7 +96,8 @@ for (j in c(1:nrow(cm_list))) {
       if (link_list_result[1]==1) {
         message("Skipped page ", i)
         skipped = c(skipped, i)
-        i = i+1
+        d = d - 1
+        i = format(d, source_dateformat)
       } else {
         link = link_list_result[[2]]
         link[str_sub(link,1,4)!="http"] = paste(link_prefix,link[str_sub(link,1,4)!="http"],sep="")
@@ -80,7 +111,8 @@ for (j in c(1:nrow(cm_list))) {
         if (length(link) != length(title)) {
           message("Error link and title mismatched, skipped page") 
           skipped = c(skipped, i)
-          i = i + 1
+          d = d - 1
+          i = format(d, source_dateformat)
           next
         }
         # _____Check xem link da scrape tu truoc chua ####
@@ -94,7 +126,8 @@ for (j in c(1:nrow(cm_list))) {
         # _____Dien link vao list  ####
         final = list_fill(list = final, vector = link, index = "link") %>% 
           list_fill(vector = title, index = "title")
-        i = i+1
+        d = d - 1
+        i = format(d, source_dateformat)
       }
       if (final.record.signal == 1) { 
         message("finising")
@@ -103,11 +136,11 @@ for (j in c(1:nrow(cm_list))) {
           message("no link") 
           break
         } else {
-        lastrecord = max(which(!is.na(final[["link"]])))
-        final[["link"]] = final[["link"]][1:lastrecord]
-        final[["title"]] = final[["title"]][1:lastrecord]
-        final[["date"]] = final[["date"]][1:lastrecord]
-        final[["content"]] = final[["content"]][1:lastrecord]
+          lastrecord = max(which(!is.na(final[["link"]])))
+          final[["link"]] = final[["link"]][1:lastrecord]
+          final[["title"]] = final[["title"]][1:lastrecord]
+          final[["date"]] = final[["date"]][1:lastrecord]
+          final[["content"]] = final[["content"]][1:lastrecord]
         }
       }
     }
@@ -134,10 +167,10 @@ for (j in c(1:nrow(cm_list))) {
       if (last_date < start_date) { ok = FALSE } 
       if (ok == FALSE) {
         message("Done scraping with specified time range. Saving...")
-        save_list_csv(final, save_dir, code, col_names, suffix = paste("file",k,"page",i-1,sep=""))
+        save_list_csv(final, save_dir, code, col_names, suffix = paste("file",k,"page",d+1,sep=""))
       } else {
         cat("Saving...\n")
-        save_list_csv(final,save_dir,code,col_names,suffix = paste("file",k,"page",i-1,sep=""))
+        save_list_csv(final,save_dir,code,col_names,suffix = paste("file",k,"page",d+1,sep=""))
         k = k + 1
         gc()
       }

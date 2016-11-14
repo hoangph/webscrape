@@ -145,8 +145,8 @@ for (j in c(1:nrow(cm_list))) {
       }
       # Check xem bai cuoi cung da vuot qua gioi han thoi gian chua
       message("checking last record")
-      last_date = as_date(as.integer(final[["date"]][min(which(!is.na(final[["date"]]) 
-                                                               & as.character(final[["date"]])!="error"))]))
+      last_date = as_date(min(as.integer(final[["date"]][which(!is.na(final[["date"]]) 
+                                                               & as.character(final[["date"]])!="error")])))
       if (last_date < start_date) { ok = FALSE } 
       if (ok == FALSE) {
         message("Done scraping with specified time range. Saving...")

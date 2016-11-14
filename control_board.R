@@ -25,7 +25,7 @@ if (machine != "ser" & operation == "ubuntu") filesync("ubuntu", "/usr/bin", pas
 #---------------------------------------#
 
 #### __Targets ####
-site = "congluan"
+site = "vtc"
 start_date = clean_date("01/01/2010")
 end_date = today()
 #### __configurations ####
@@ -57,7 +57,7 @@ if (update == 1) {
 
 
 setwd(dir)
-source("webscheme1.R")
+source("webscheme3.R")
 
 if (update == 2) {
     setwd(save_dir)

@@ -157,6 +157,41 @@ link_par = function(site) {
     cm_list = data.frame(tencm,linkcm)
     rm(tencm,linkcm)
   }
+  
+  # doanhnhansaigon
+  if (site == "doanhnhansaigon") {
+    tencm = c("thoisu", "doanhnhan", "kinhdoanh", "thegioiquantri", "diendan", "cohoigiaothuong")
+    linkcm = c("http://www.doanhnhansaigon.vn/thoi-su/p",
+               "http://www.doanhnhansaigon.vn/doanh-nhan/p",
+               "http://www.doanhnhansaigon.vn/kinh-doanh/p",
+               "http://www.doanhnhansaigon.vn/the-gioi-quan-tri/p",
+               "http://www.doanhnhansaigon.vn/dien-dan-doanh-nhan/p",
+               "http://www.doanhnhansaigon.vn/su-kien-doanh-nghiep/p")
+    cm_list = data.frame(tencm,linkcm)
+    rm(tencm,linkcm)
+  }
+  
+  # cafef.vn
+  if (site == "cafef") {
+    tencm = c("thoisu", "chungkhoan", "batdongsan", "doanhnghiep", "taichinhnganhang", "vimo", "hanghoanguyenlieu")
+    linkcm = c("http://cafef.vn/thoi-su/",
+               "http://cafef.vn/thi-truong-chung-khoan/",
+               "http://cafef.vn/bat-dong-san/",
+               "http://cafef.vn/doanh-nghiep/",
+               "http://cafef.vn/tai-chinh-ngan-hang/",
+               "http://cafef.vn/vi-mo-dau-tu/",
+               "http://cafef.vn/hang-hoa-nguyen-lieu/" )
+    cm_list = data.frame(tencm,linkcm)
+    rm(tencm,linkcm)
+  }
+  
+  # vtc.vn
+  if (site == "vtc") {
+    tencm = c("tatca")
+    linkcm = c("http://www.vtc.vn/tin-hang-ngay/" )
+    cm_list = data.frame(tencm,linkcm)
+    rm(tencm,linkcm)
+  }
   # END #
   return(cm_list)
 }
@@ -295,11 +330,53 @@ node_par = function(site, cm) {
     # Link prefix
     link_prefix = "http://nguoiduatin.vn"
   }
+  
+  # doanhnhansaigon.vn
+  if (site == "doanhnhansaigon") {
+    # Nodes
+    source_suffix = ""
+    article_selector = ".category-wnews a"
+    content_selector = "#ar-content-html"
+    date_selector = ".date"
+    # Link prefix
+    link_prefix = "http://doanhnhansaigon.vn"
+  }
+  
+  # cafef.vn
+  if (site == "cafef") {
+    # Nodes
+    source_suffix = ".chn"
+    source_pagenumber = "trang-"
+    source_dateformat = "%d/%m/%Y"
+    article_selector = "h3 a"
+    content_selector = ".sapo, .newsbody p"
+    date_selector = ".date_zoom .date"
+    # Link prefix
+    link_prefix = "http://cafef.vn"
+  }
+  
+  # vtc.vn
+  if (site == "vtc") {
+    # Nodes
+    source_suffix = ""
+    source_pagenumber = "p"
+    source_dateformat = "%d-%m-%Y"
+    article_selector = ".title_list_news_cate"
+    content_selector = "#content_detail > p, #content_detail > h2, #content_detail > div> font > b"
+    date_selector = ".time_detail a"
+    # Link prefix
+    link_prefix = "http://vtc.vn"
+  }
+  
   # Save directory
   save_dir = paste(dir, "/", site, "/tempData", sep = "")
+  if (!exists("source_pagenumber")) source_pagenumber = ""
+  if (!exists("source_dateformat")) source_dateformat = ""
   # END #
   return(list(link_prefix = link_prefix,
               source_suffix = source_suffix,
+              source_pagenumber = source_pagenumber,
+              source_dateformat = source_dateformat,
               content_selector=content_selector,
               date_selector=date_selector,
               article_selector=article_selector,
