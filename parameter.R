@@ -192,6 +192,52 @@ link_par = function(site) {
     cm_list = data.frame(tencm,linkcm)
     rm(tencm,linkcm)
   }
+  
+  # toquoc.vn (nhieu kha nang co doi ten chuyen muc)
+  if (site == "toquoc") {
+    tencm = c("thoisu", "kinhte", "giaoduc", "suckhoe", "chinhtri", "vietkieu", "phapluatdoisong", "anninh", "gocnhin", "batdongsan",
+              "taichinh", "thitruong", "chuyenkinhdoanh", "thoisugiaoduc", "tuyensinh", "vieclam", "thoisuyte")
+    linkcm = c("http://toquoc.vn/Thoi_su/?trang=",
+               "http://toquoc.vn/kinh-te/?trang=",
+               "http://toquoc.vn/giao-duc/?trang=",
+               "http://toquoc.vn/y-te/?trang=",
+               "http://toquoc.vn/gio-thu-25/?trang=",
+               "http://toquoc.vn/Viet-kieu/?trang=",
+               "http://toquoc.vn/doi-song/?trang=",
+               "http://toquoc.vn/An-ninh-tra-tu/?trang=",
+               "http://toquoc.vn/goc-nhin/?trang=",
+               "http://toquoc.vn/dia-oc/?trang=",
+               "http://toquoc.vn/tai-chinh-chung-khoan/?trang=",
+               "http://toquoc.vn/kinh-te-viet-nam/?trang=",
+               "http://toquoc.vn/kinh-te-the-gioi/?trang=",
+               "http://toquoc.vn/thoi-su-giao-duc/?trang=",
+               "http://toquoc.vn/dau-tu-giao-duc/?trang=",
+               "http://toquoc.vn/giao-duc-va-viec-lam/?trang=",
+               "http://toquoc.vn/thoi-su-y-te/?trang=")
+               
+    cm_list = data.frame(tencm,linkcm)
+    rm(tencm,linkcm)
+  }
+  
+  # nhandan.org.vn
+  if (site == "nhandan") {
+    tencm = c("chinhtri", "kinhte", "vanhoa", "xahoi", "khoahoc", "giaoduc", "suckhoe", "phapluat",
+              "hanoi", "tphcm")
+    linkcm = c("http://www.nhandan.com.vn/chinhtri?fromdate=",
+               "http://www.nhandan.com.vn/kinhte?fromdate=",
+               "http://www.nhandan.com.vn/vanhoa?fromdate=",
+               "http://www.nhandan.com.vn/xahoi?fromdate=",
+               "http://www.nhandan.com.vn/khoahoc?fromdate=",
+               "http://www.nhandan.com.vn/giaoduc?fromdate=",
+               "http://www.nhandan.com.vn/suckhoe?fromdate=",
+               "http://www.nhandan.com.vn/phapluat?fromdate=",
+               "http://www.nhandan.com.vn/hanoi?fromdate=",
+               "http://www.nhandan.com.vn/tphcm?fromdate="
+               )
+    cm_list = data.frame(tencm,linkcm)
+    rm(tencm,linkcm)
+  }
+  
   # END #
   return(cm_list)
 }
@@ -366,6 +412,32 @@ node_par = function(site, cm) {
     date_selector = ".time_detail a"
     # Link prefix
     link_prefix = "http://vtc.vn"
+  }
+  
+  # toquoc.vn
+  if (site == "toquoc") {
+    # Nodes
+    source_suffix = ""
+    source_pagenumber = ""
+    source_dateformat = ""
+    article_selector = ".info_cate .cms-link"
+    content_selector = "#cotent_detail span, #cotent_detail p, .cms-desc div, #cotent_detail div"
+    date_selector = ".fontOP"
+    # Link prefix
+    link_prefix = "http://toquoc.vn"
+  }
+  
+  # nhandan.org.vn
+  if (site == "nhandan") {
+    # Nodes
+    source_suffix = ""
+    source_pagenumber = ""
+    source_dateformat = "%d-%m-%Y"
+    article_selector = ".media-heading .pull-left"
+    content_selector = "p"
+    date_selector = ".icon_date_top"
+    # Link prefix
+    link_prefix = "http://nhandan.org.vn"
   }
   
   # Save directory

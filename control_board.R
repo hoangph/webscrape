@@ -10,7 +10,7 @@
 #dir = "/home/hoangph/Documents/Webscrape"
 dir = "D:/Webscrape/webscrape"
 setwd(dir)
-source("parameter.R")
+source("parameter.R", encoding = "UTF-8")
 source("functions.R")
 machine = "ser"
 operation = "windows"
@@ -25,7 +25,7 @@ if (machine != "ser" & operation == "ubuntu") filesync("ubuntu", "/usr/bin", pas
 #---------------------------------------#
 
 #### __Targets ####
-site = "vtc"
+site = "nhandan"
 start_date = clean_date("01/01/2010")
 end_date = today()
 #### __configurations ####
@@ -57,7 +57,7 @@ if (update == 1) {
 
 
 setwd(dir)
-source("webscheme3.R")
+source("webscheme2.R")
 
 if (update == 2) {
     setwd(save_dir)

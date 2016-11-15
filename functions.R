@@ -63,15 +63,34 @@ get_article = function(url, article_selector) {
   }
 }
 
+# Change the encoding
+encode = function(char) {
+  iconv(char)
+}
+
 # Translate date format from Vietnamese -> R (English)
 clean_date = function (date) {
-  date_s = str_sub(date, str_locate(date,"/")[1]-2,str_locate(date,"/")[1]-2+9)
-  if (is.na(date_s)) { ## Date dang 10.11.2016
+  edate = encode(date)
+  date_s = str_sub(date, str_locate(date,"/")[1]-2, str_locate(date,"/")[1]-2+9)
+  if (is.na(date_s)) { ## Date dang 30.11.2016 hoac 30-11-2016
     date = str_replace_all(date, pattern = "\\.", replacement = "/") 
+    date = str_replace_all(date, pattern = "-", replacement = "/") 
     date_s = str_sub(date, str_locate(date,"/")[1]-2,str_locate(date,"/")[1]-2+9)
   }
   date_d = as.Date(date_s,"%d/%m/%Y")
+  if (is.na(date_s)) {
+    if (stri_detect_fixed(edate, "giờ trước")) date_d = today() - 1
+    if (stri_detect_fixed(edate, "ngày trước")) {
+      c = str_split(edate, " ")[[1]]
+      t = c[which(stri_detect_fixed(c, "ngày"))[1] - 1] %>% as.integer()
+      if (!is.na(t)) date_d = today() - t
+    }
+  }
   return(date_d)
+}
+
+a = function (edate) {
+  stri_detect_fixed(edate,"ngày trước")
 }
 
 # Reformat date: US -> Euro
@@ -89,7 +108,7 @@ read_page = function(url, content_selector, date_selector) {
     errorPage = 1
     return(list(errorPage, 1, 1))
   } else {
-    ar_date = page_html[[2]] %>% html_nodes(date_selector) %>% html_text()%>%
+    ar_date = page_html[[2]] %>% html_nodes(date_selector) %>% html_text() %>%
       paste(collapse = "") %>% clean_date()
     if (is.na(ar_date)) {  # If there is no date in the article -> wrong format -> skip
       message("Skipped.")
@@ -98,7 +117,7 @@ read_page = function(url, content_selector, date_selector) {
     } else {
       message("Date: ", ar_date)
       paragraph = page_html[[2]] %>% html_nodes(content_selector) %>% 
-        html_text() %>% paste(collapse = " ")
+        html_text() %>% unique() %>% paste(collapse = " ")
       paragraph = data.frame(ar_date,paragraph)
       errorPage = 0
       return(list(errorPage, paragraph$ar_date, paragraph$paragraph))

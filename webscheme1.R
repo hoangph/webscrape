@@ -56,9 +56,9 @@ for (j in c(1:nrow(cm_list))) {
       link_list_result = source %>% paste(i,source_suffix,sep = "") %>% 
         get_article(article_selector)
       if (length(link_list_result[[3]])==0) { last_count = last_count + 1 }
-      if (length(link_list_result[[3]]) != 0 & length(link_list_result[[3]]) < 5) {
-        if (!exists("linkcheck")) { linkcheck = link_list_result[[3]] } else {
-          if (mean(linkcheck == link_list_result[[3]])==1) last_count = last_count + 1
+      if (length(link_list_result[[3]]) != 0 & length(unique(link_list_result[[3]])) < 10) {
+        if (!exists("linkcheck")) { linkcheck = unique(link_list_result[[3]]) } else {
+          if (mean(linkcheck == unique(link_list_result[[3]]))==1) last_count = last_count + 1
         }
       }
       
