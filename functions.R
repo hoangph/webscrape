@@ -20,7 +20,8 @@ call.library()
 # Starting point
 start_point = function(webscheme, save_dir) {
   setwd(save_dir)
-  file_list = list.files()[which(str_sub(list.files(), 1, str_locate(list.files(),"_")[,1]-1)==code)]
+  cm = str_split(list.files(), '_') %>% data.frame()
+  file_list = list.files()[which(cm[2,] == code)]
   k_index = str_locate(file_list,pattern = "file")[,1]
   p_index = str_locate(file_list,pattern = "page")[,1]
   e_index = str_locate(file_list,pattern = "_.csv")[,1]
@@ -156,7 +157,7 @@ read_page = function(url, content_selector, date_selector) {
 }
 
 # Save the data list into dataframe
-save_list_csv = function (list, save_dir, code, col_names, suffix) {
+save_list_csv = function (list, save_dir, site, code, col_names, suffix) {
   setwd(save_dir)
   max_length = length(list[[1]])
   for (i in c(2:length(list))) {
@@ -169,7 +170,7 @@ save_list_csv = function (list, save_dir, code, col_names, suffix) {
   }
   file = file[,-1]
   colnames(file) <- col_names
-  write_excel_csv(file,paste(code,as.character(today()),suffix,".csv", sep = "_"))
+  write_excel_csv(file,paste(site, code,as.character(today()),suffix,".csv", sep = "_"))
 }
 
 
@@ -183,11 +184,12 @@ list_fill = function(list, vector, index) {
 }
 
 # Merge files
-merge_temp = function(directory, code) {
+merge_temp = function(directory, site, code) {
   setwd(directory)
   text = c()
   merged = c()
-  file_index = which(str_sub(list.files(), 1, str_locate(list.files(),"_")[,1]-1) %in% code)
+  cm = str_split(list.files(), '_') %>% data.frame()
+  file_index = which(cm[1,] == site & t(cm[2,]) %in% code)
   if (length(file_index) > 0) {
     c = 0
     for (i in file_index) {

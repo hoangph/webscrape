@@ -125,16 +125,16 @@ for (j in c(1:nrow(cm_list))) {
       if (last_date < start_date) { ok = FALSE } 
       if (ok == FALSE) {
         message("Done scraping with specified time range. Saving...")
-        save_list_csv(final, save_dir, code, col_names, suffix = paste("file",k,"page",i-1,sep=""))
+        save_list_csv(final, save_dir, site, code, col_names, suffix = paste("file",k,"page",i-1,sep=""))
       } else {
         cat("Saving...\n")
-        save_list_csv(final,save_dir,code,col_names,suffix = paste("file",k,"page",i-1,sep=""))
+        save_list_csv(final,save_dir, site, code,col_names,suffix = paste("file",k,"page",i-1,sep=""))
         k = k + 1
         gc()
       }
     }
     # merge cac file da scrape cua cac chuyen muc va lay link de so sanh
-    merge_result = merge_temp(save_dir, code)
+    merge_result = merge_temp(save_dir, site, code)
     link_list = rbind(link_list, merge_result[,1]) %>% unique()
     setwd(paste(dir,"/", "/tempLink",sep=""))
     write_excel_csv(merge_result[,1], paste(site,"_link.csv", sep=""))

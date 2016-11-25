@@ -75,14 +75,13 @@ if (update == 2) {
 #---------------------------------------#
 
 # Update temp files: scraper -> Storage (Update)
-while (FALSE) {
-  if (update != 2) {
+if (update != 2) {
     filesync(operation = "ubuntu", freefilesync.dir = "/usr/bin", 
              batchfile = paste(site, "temp", machine, "sto", "ffs_batch", sep = "."))
     filesync(operation = "ubuntu", freefilesync.dir = "/usr/bin", 
              batchfile = paste(site, "rmtemp", machine, "ffs_batch", sep = "."))
-  }
 }
+
 
 while (FALSE) {
   setwd(dir)
@@ -97,7 +96,7 @@ while (FALSE) {
   # Merge temp files into final data: on server
   sites = c("dantri", "vnexpress", "laodong", "thanhnien", "vietnamnet", "vneconomy",
             "baodatviet", "cafef", "congluan", "doanhnhansaigon", "ndh", "nguoiduatin", 
-            "nhandan", "toquoc", "vtc")
+            "nhandan", "toquoc", "vtc", "baophapluat")
   for (site in sites) {
     cm_list = link_par(site)
     par = node_par(site, cm = unique(cm_list$tencm)[1])
