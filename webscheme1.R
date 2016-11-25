@@ -16,20 +16,10 @@ for (j in c(1:nrow(cm_list))) {
     rm(d)
   }
   #___Vong lap de lay link####
-  # Starting point
-  setwd(save_dir)
-  file_list = list.files()[which(str_sub(list.files(), 1, str_locate(list.files(),"_")[,1]-1)==code)]
-  k_index = str_locate(file_list,pattern = "file")[,1]
-  p_index = str_locate(file_list,pattern = "page")[,1]
-  e_index = str_locate(file_list,pattern = "_.csv")[,1]
-  k_index = str_sub(file_list, k_index+4, p_index-1)
-  p_index = str_sub(file_list, p_index+4, e_index-1)
-  k = max(as.integer(k_index[!is.na(k_index)])) + 1
-  i = max(as.integer(p_index[!is.na(p_index)])) + 1
-  if (k==-Inf) {k = 1}
-  if (i==-Inf) {i = 1}
-
-  rm(k_index, p_index, e_index)
+  sp = start_point(1, save_dir)
+  k = sp[[1]]
+  i = sp[[2]]
+  
   # Loop
   ok = TRUE
   if (exists("skip_cm")) {
@@ -39,6 +29,7 @@ for (j in c(1:nrow(cm_list))) {
       }
       if (skip_cm == 0) rm(skip_cm)
   }
+  
   while (ok) {
     # Lay nhieu link trong chuyen muc mot luc
     if (update == 1) temp = rep(NA, 20)
@@ -142,12 +133,13 @@ for (j in c(1:nrow(cm_list))) {
         gc()
       }
     }
+    # merge cac file da scrape cua cac chuyen muc va lay link de so sanh
+    merge_result = merge_temp(save_dir, code)
+    link_list = rbind(link_list, merge_result[,1]) %>% unique()
+    setwd(paste(dir,"/", "/tempLink",sep=""))
+    write_excel_csv(merge_result[,1], paste(site,"_link.csv", sep=""))
+    rm(merge_result)
+    gc()
   }
-  # merge cac file da scrape cua cac chuyen muc va lay link de so sanh
-  merge_result = merge_temp(save_dir, code)
-  link_list = rbind(link_list, merge_result[,1]) %>% unique()
-  setwd(paste(dir,"/", site, "/tempLink",sep=""))
-  write_excel_csv(merge_result[,1], paste(site,"_link.csv", sep=""))
-  rm(merge_result)
-  gc()
+  
 }

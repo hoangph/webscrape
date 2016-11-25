@@ -25,25 +25,9 @@ for (j in c(1:nrow(cm_list))) {
   }
   #___Vong lap de lay link####
   # Starting point
-  setwd(save_dir)
-  file_list = list.files()[which(str_sub(list.files(), 1, str_locate(list.files(),"_")[,1]-1)==code)]
-  k_index = str_locate(file_list,pattern = "file")[,1]
-  p_index = str_locate(file_list,pattern = "page")[,1]
-  e_index = str_locate(file_list,pattern = "_.csv")[,1]
-  k_index = str_sub(file_list, k_index+4, p_index-1)
-  p_index = str_sub(file_list, p_index+4, e_index-1)
-  k = max(as.integer(k_index[!is.na(k_index)])) + 1
-  od = as.Date(p_index[!is.na(p_index)], "%Y-%m-%d")
-  if (k==-Inf | is.na(k)) {k = 1}
-  if (length(od) == 0) {
-    d = end_date
-    i = format(d, source_dateformat)
-  } else {
-    d = od
-    i = format(d, source_dateformat)
-  }
-  
-  rm(k_index, p_index, e_index)
+  sp = start_point(3, save_dir)
+  k = sp[[1]]
+  i = sp[[2]]
   
   # Loop
   ok = TRUE

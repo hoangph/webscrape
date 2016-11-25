@@ -238,6 +238,20 @@ link_par = function(site) {
     rm(tencm,linkcm)
   }
   
+  # baophapluat
+  if (site == "baophapluat") {
+    tencm = c('thoisu', 'kinhte', 'phapluat', 'xahoi', 'bandoc', 'suckhoe', 'nhipsonghomnay')
+    linkcm = c('http://baophapluat.vn/chinh-tri/?page=',
+               'http://baophapluat.vn/kinh-te/?page=',
+               'http://baophapluat.vn/xa-lo-phap-luat/?page=',
+               'http://baophapluat.vn/xa-hoi/?page=',
+               'http://baophapluat.vn/ban-doc/?page=',
+               'http://baophapluat.vn/song-khoe/?page=',
+               'http://baophapluat.vn/nhip-song-hom-nay/?page=')
+    cm_list = data.frame(tencm,linkcm)
+    rm(tencm,linkcm)
+  }
+  
   # END #
   return(cm_list)
 }
@@ -440,8 +454,21 @@ node_par = function(site, cm) {
     link_prefix = "http://nhandan.org.vn"
   }
   
+  # baophapluat
+  if (site == "baophapluat") {
+    # Nodes
+    source_suffix = ""
+    source_pagenumber = "" # for loop by date and page
+    source_dateformat = "" #for loop by date
+    article_selector = ".acolumn a:nth-child(2)"
+    content_selector = "em , #ctl00_mainContent_abody p, .cms-desc"
+    date_selector = ".head-post span"
+    # Link prefix
+    link_prefix = "http://baophapluat.vn"
+  }
+  
   # Save directory
-  save_dir = paste(dir, "/", site, "/tempData", sep = "")
+  save_dir = paste(dir, "/", "/tempData", sep = "")
   if (!exists("source_pagenumber")) source_pagenumber = ""
   if (!exists("source_dateformat")) source_dateformat = ""
   # END #

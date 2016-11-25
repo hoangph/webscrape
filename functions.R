@@ -17,6 +17,36 @@ call.library()
 ####   General purpose functions  ####
 ###--------------------------------###
 
+# Starting point
+start_point = function(webscheme, save_dir) {
+  setwd(save_dir)
+  file_list = list.files()[which(str_sub(list.files(), 1, str_locate(list.files(),"_")[,1]-1)==code)]
+  k_index = str_locate(file_list,pattern = "file")[,1]
+  p_index = str_locate(file_list,pattern = "page")[,1]
+  e_index = str_locate(file_list,pattern = "_.csv")[,1]
+  k_index = str_sub(file_list, k_index+4, p_index-1)
+  p_index = str_sub(file_list, p_index+4, e_index-1)
+  k = max(as.integer(k_index[!is.na(k_index)])) + 1
+  if (k==-Inf) {k = 1}
+  
+  if (webscheme == 1) {
+    i = max(as.integer(p_index[!is.na(p_index)])) + 1
+    
+    if (i==-Inf) {i = 1}
+  }
+  if (webscheme %in% c(2,3)) {
+    od = as.Date(p_index[!is.na(p_index)], "%Y-%m-%d")
+    if (length(od) == 0) {
+      d = end_date
+      i = format(d, source_dateformat)
+    } else {
+      d = od
+      i = format(d, source_dateformat)
+    }
+  }
+  return(list(k, i))
+}
+
 
 # Try read HTML function #
 # Try multiple times if errors happen
@@ -182,9 +212,9 @@ merge_temp = function(directory, code) {
 
 # Call files
 call_file = function(file.type, site, index) {
-  if (file.type == "final") setwd(paste(dir,"/",site,"/finalData",sep=""))
-  if (file.type == "temp") setwd(paste(dir,"/",site,"/tempData",sep=""))
-  if (file.type == "tlink") setwd(paste(dir,"/",site,"/tempLink",sep=""))
+  if (file.type == "final") setwd(paste(dir,"/finalData",sep=""))
+  if (file.type == "link") setwd(paste(dir,"/finalLink",sep=""))
+  if (file.type == "tlink") setwd(paste(dir,"/tempLink",sep=""))
   text = c()
   for (i in c(1:length(index))) {
     file.name = paste(site, "_", index[i], ".csv", sep = "")
@@ -205,8 +235,8 @@ call_file = function(file.type, site, index) {
 
 # Call data (raw, link, process)
 call_final = partial(call_file, file.type = "final")
-# Call temp files
-call_temp = partial(call_file, file.type = "temp")
+# Call link files
+call_link = partial(call_file, file.type = "link")
 # Call temp link list
 call_tlink = partial(call_file, file.type = "tlink")
 
@@ -284,22 +314,22 @@ update_final = function(x, site) {
     data = rbind(data, new)
     data = data[!duplicated(data$link),]
     cat("writing ", y, "\n")
-    setwd(paste(dir,"/",site,"/finalData",sep=""))
+    setwd(paste(dir,"/finalData",sep=""))
     write_excel_csv(data, paste(site, "_", y, ".csv", sep = ""))
   }
   link = as.data.frame(x$link)
   colnames(link) = "link"
-  link.list = call_final(site, "link")
+  link.list = call_link(site, "link")
   if (!is.null(link.list)) colnames(link.list) = "link"
   link.list = rbind(link.list, link) %>% unique()
+  setwd(paste(dir, "/finalLink", sep =""))
   write_excel_csv(link.list, paste(site, "_link.csv", sep = ""))
   gc()
 }
 
 # Create list of links
 create.linklist = function(site, start.year, end.year) {
-  par = node_par(site, code)
-  save_dir = par[["save_dir"]]
+  save_dir = paste(dir, "/", site, "/tempData", sep = "")
   start.year = as.integer(start.year)
   end.year = as.integer(end.year)
   linklist = c()
@@ -311,7 +341,7 @@ create.linklist = function(site, start.year, end.year) {
   linklist = unique(linklist)
   if (length(linklist) > 0) {
     colnames(linklist) = "link"
-    setwd(paste(dir, "/", site, "/finalData", sep=""))
+    setwd(paste(dir, "/finalLink", sep=""))
     write_excel_csv(linklist, paste(site,"_link.csv",sep=""))
   }
 }
