@@ -1,4 +1,4 @@
-runscheme = function(site, update, last_date_table, link_list) {
+runscheme = function(site, update, last_date_table, link_list, start_date, end_date) {
   
   cm_list = link_par(site)
   for (j in c(1:nrow(cm_list))) {

@@ -66,7 +66,7 @@ scrape_site = function(site, update, webscheme) {
   
   setwd(dir)
   source(paste0('webscheme', webscheme, '.R'))
-  runscheme(site, update, last_date_table, link_list)
+  runscheme(site, update, last_date_table, link_list, start_date, end_date)
   
   if (update == 2) {
       setwd(save_dir)

@@ -2,7 +2,7 @@
 ##    Scrape by date  ########
 ##    1 page / date   ########
 ##############################
-runscheme = function(site, update, last_date_table) {
+runscheme = function(site, update, last_date_table, link_list, start_date, end_date) {
     
   #if (update == 2) start_date = clean_date("01-01-2010")
   cm_list = link_par(site)
