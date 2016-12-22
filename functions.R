@@ -18,33 +18,40 @@ call.library()
 ###--------------------------------###
 
 # Starting point
-start_point = function(webscheme, save_dir) {
+start_point = function(webscheme, save_dir, code) {
   setwd(save_dir)
   cm = str_split(list.files(), '_') %>% data.frame()
-  file_list = list.files()[which(cm[2,] == code)]
-  k_index = str_locate(file_list,pattern = "file")[,1]
-  p_index = str_locate(file_list,pattern = "page")[,1]
-  e_index = str_locate(file_list,pattern = "_.csv")[,1]
-  k_index = str_sub(file_list, k_index+4, p_index-1)
-  p_index = str_sub(file_list, p_index+4, e_index-1)
-  k = max(as.integer(k_index[!is.na(k_index)])) + 1
-  if (k==-Inf) {k = 1}
-  
-  if (webscheme == 1) {
-    i = max(as.integer(p_index[!is.na(p_index)])) + 1
+  if (nrow(cm) == 0) {
+    k = 1
+    i = 1
+  } else {
+    file_list = list.files()[which(cm[2,] == code)]
     
-    if (i==-Inf) {i = 1}
-  }
-  if (webscheme %in% c(2,3)) {
-    od = as.Date(p_index[!is.na(p_index)], "%Y-%m-%d")
-    if (length(od) == 0) {
-      d = end_date
-      i = format(d, source_dateformat)
-    } else {
-      d = od
-      i = format(d, source_dateformat)
+    k_index = str_locate(file_list,pattern = "file")[,1]
+    p_index = str_locate(file_list,pattern = "page")[,1]
+    e_index = str_locate(file_list,pattern = "_.csv")[,1]
+    k_index = str_sub(file_list, k_index+4, p_index-1)
+    p_index = str_sub(file_list, p_index+4, e_index-1)
+    k = max(as.integer(k_index[!is.na(k_index)])) + 1
+    if (k==-Inf) {k = 1}
+    
+    if (webscheme == 1) {
+      i = max(as.integer(p_index[!is.na(p_index)])) + 1
+      
+      if (i==-Inf) {i = 1}
+    }
+    if (webscheme %in% c(2,3)) {
+      od = as.Date(p_index[!is.na(p_index)], "%Y-%m-%d")
+      if (length(od) == 0) {
+        d = end_date
+        i = format(d, source_dateformat)
+      } else {
+        d = od
+        i = format(d, source_dateformat)
+      }
     }
   }
+  
   return(list(k, i))
 }
 
@@ -349,17 +356,6 @@ create.linklist = function(site, start.year, end.year) {
 }
 
 
-### Create column of month and year (= starting date)
-time_round = function(x, date_col) {
-  if (missing(date_col)) {
-    date_col = "date"
-  }
-  date_index = which(names(x) == date_col)
-  colnames(x)[date_index] = "date"
-  x$month = floor_date(x$date, unit = "month")
-  x$year = floor_date(x$date, unit = "year")
-  return(x)
-}
 
 # Choose which parts are counted
 total_count = function(x, col.count) {
@@ -367,7 +363,25 @@ total_count = function(x, col.count) {
   return(x)
 }
 
-# Visualizing 
+
+
+
+# Save final data with suffix
+save_final = function(x, site, name) {
+  setwd(paste(dir,"/",site,"/finalData",sep=""))
+  write_excel_csv(x, name)
+}
+
+
+
+#-------------------------------------#
+#         DATA VISUALIZATION          #
+#-------------------------------------#
+
+# 
+
+
+# COUNT RESULTS 
 plot_by_cat = function(text, count.column, unit, cat) {
   if (missing(unit)) { unit = "month"}
   if (!(unit %in% colnames(text))) {
@@ -400,6 +414,8 @@ plot_total = function(text, count.column, unit) {
   ggplot(text[text$contain != 0,], aes(x = get(unit))) +
     geom_bar(fill="#CC0000") 
 }
+
+
 # Draw multiple plots
 multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
   library(grid)
@@ -437,17 +453,59 @@ multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
   }
 }
 
+
+
+#-------------------------------------#
+#          DATA EXPLORATION           #
+#-------------------------------------#
+
 # Preview a vector
 sumfactor = function(vector) {
   vector %>% factor %>% summary
 }
 
-# Save final data with suffix
-save_final = function(x, site, name) {
-  setwd(paste(dir,"/",site,"/finalData",sep=""))
-  write_excel_csv(x, name)
+### Create column of month and year (= starting date)
+time_round = function(x, date_col) {
+  if (missing(date_col)) {
+    date_col = "date"
+  }
+  date_index = which(names(x) == date_col)
+  colnames(x)[date_index] = "date"
+  
+  x$month = floor_date(x$date, unit = "month")
+  x$year = floor_date(x$date, unit = "year")
+  return(data.frame(x$month, x$year))
 }
 
+# DATABASE SUMMARY
+list.sites = function() {
+  setwd(paste(dir,"/finalData",sep=""))
+  final_files = str_split(list.files(), '_')
+  final_files  = final_files %>% lapply(function(x) x[[1]]) %>% unique() %>% unlist()
+  return(final_files)
+}
+
+time_summary = function(site) {
+  setwd(paste(dir,"/finalData",sep=""))
+  file_index = which(!is.na(str_locate(list.files(), site)[,1]))
+  file_names = list.files()[file_index]
+  year_list = str_sub(file_names, mean(str_locate(file_names,'_')[,1])+1, 
+                      mean(str_locate(file_names, '\\.')[,1])) %>% as.integer()
+  year_list = year_list[!is.na(year_list)]
+  out.table = c()
+  for (year in year_list) {
+    data = call_final(site, index = year)
+    data = cbind(data, time_round(data, 'date'))
+    datasum = group_by(data, category, x.month) 
+    datasum = summarise(datasum, no.ar = sum(!is.na(link)))
+    out.table = rbind(out.table, datasum)
+  }
+  ggplot(out.table, aes(x = x.month, y = no.ar)) +
+    geom_bar(stat = 'identity', fill="#CC0000") +
+    facet_wrap(~category)
+  return(out.table)
+  
+}
 #-------------------------------------#
 #       Text analysis module          #
 #-------------------------------------#

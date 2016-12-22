@@ -258,7 +258,7 @@ link_par = function(site) {
 
 #### Nodes and directory ####
 
-node_par = function(site, cm) {
+node_par = function(site, cm = NULL) {
   
   # Thanhnien.vn
   if (site == "thanhnien") {
@@ -273,7 +273,7 @@ node_par = function(site, cm) {
     }
     date_selector = ".meta time"
     article_selector = ".clearfix .title"
-
+    webscheme = 1
   }
   
   
@@ -286,7 +286,7 @@ node_par = function(site, cm) {
     content_selector = "#ArticleContent p , strong"
     date_selector = ".ArticleDate"
     article_selector = ".dotter .f-16"
-
+    webscheme = 1
   }
   
   # dantri.com.vn
@@ -298,7 +298,7 @@ node_par = function(site, cm) {
     content_selector = "#divNewsContent, .sapo"
     date_selector = ".tt-capitalize"
     article_selector = ".fon6"
-
+    webscheme = 1
   }
   
   #laodong.com.vn
@@ -310,6 +310,7 @@ node_par = function(site, cm) {
     content_selector = ".content p, .cms-desc"
     date_selector = ".cms-date"
     article_selector = ".hzol-clear .cms-link"
+    webscheme = 1
   }
   
   # vnexpress
@@ -321,6 +322,7 @@ node_par = function(site, cm) {
     content_selector = ".short_intro , .Normal"
     date_selector = ".block_timer"
     article_selector = "#news_home .txt_link"
+    webscheme = 1
   }
   
   # vneconomy
@@ -332,6 +334,7 @@ node_par = function(site, cm) {
     date_selector = ".timverbvvth"
     # Link prefix
     link_prefix = "http://vneconomy.vn"
+    webscheme = 1
   }
   
   # ndh
@@ -343,6 +346,7 @@ node_par = function(site, cm) {
     date_selector = ".nav-detail .sub-time"
     # Link prefix
     link_prefix = "http://ndh.vn"
+    webscheme = 1
   }
   
   # baodatviet.vn
@@ -354,6 +358,7 @@ node_par = function(site, cm) {
     date_selector = ".time"
     # Link prefix
     link_prefix = "http://baodatviet.vn"
+    webscheme = 1
   }
   
   # qdnd.vn
@@ -365,6 +370,7 @@ node_par = function(site, cm) {
     date_selector = ".post-subinfo"
     # Link prefix
     link_prefix = "http://qdnd.vn"
+    webscheme = 1
   }
   
   # congluan.vn
@@ -376,6 +382,7 @@ node_par = function(site, cm) {
     date_selector = ".date-published"
     # Link prefix
     link_prefix = "http://congluan.vn"
+    webscheme = 1
   }
   # Save directory
   save_dir = paste(dir, "/", site, "/tempData", sep = "")
@@ -389,6 +396,7 @@ node_par = function(site, cm) {
     date_selector = ".datetime"
     # Link prefix
     link_prefix = "http://nguoiduatin.vn"
+    webscheme = 1
   }
   
   # doanhnhansaigon.vn
@@ -400,6 +408,7 @@ node_par = function(site, cm) {
     date_selector = ".date"
     # Link prefix
     link_prefix = "http://doanhnhansaigon.vn"
+    webscheme = 1
   }
   
   # cafef.vn
@@ -413,6 +422,7 @@ node_par = function(site, cm) {
     date_selector = ".date_zoom .date"
     # Link prefix
     link_prefix = "http://cafef.vn"
+    webscheme = 3
   }
   
   # vtc.vn
@@ -426,6 +436,7 @@ node_par = function(site, cm) {
     date_selector = ".time_detail a"
     # Link prefix
     link_prefix = "http://vtc.vn"
+    webscheme = 3
   }
   
   # toquoc.vn
@@ -452,6 +463,7 @@ node_par = function(site, cm) {
     date_selector = ".icon_date_top"
     # Link prefix
     link_prefix = "http://nhandan.org.vn"
+    webscheme = 2
   }
   
   # baophapluat
@@ -465,6 +477,7 @@ node_par = function(site, cm) {
     date_selector = ".head-post span"
     # Link prefix
     link_prefix = "http://baophapluat.vn"
+    webscheme = 1
   }
   
   # Save directory
@@ -479,7 +492,8 @@ node_par = function(site, cm) {
               content_selector=content_selector,
               date_selector=date_selector,
               article_selector=article_selector,
-              save_dir=save_dir))
+              save_dir=save_dir,
+              webscheme=webscheme))
 }
 
 
