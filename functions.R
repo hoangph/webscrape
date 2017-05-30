@@ -224,6 +224,7 @@ call_file = function(file.type, site, index) {
   if (file.type == "final") setwd(paste(dir,"/finalData",sep=""))
   if (file.type == "link") setwd(paste(dir,"/finalLink",sep=""))
   if (file.type == "tlink") setwd(paste(dir,"/tempLink",sep=""))
+  if (file.type == "processed") setwd(paste(dir,"/finalProcessed",sep=""))
   text = c()
   for (i in c(1:length(index))) {
     file.name = paste(site, "_", index[i], ".csv", sep = "")
@@ -242,18 +243,20 @@ call_file = function(file.type, site, index) {
 }
 
 
-# Call data (raw, link, process)
+# Call final data
 call_final = partial(call_file, file.type = "final")
 # Call link files
 call_link = partial(call_file, file.type = "link")
 # Call temp link list
 call_tlink = partial(call_file, file.type = "tlink")
+# Call processed data
+call_proc = partial(call_file, file.type = 'processed')
 
 # Call count result
 call_count = function(site, key_code) {
-  setwd(paste(dir,"/",site,"/finalData",sep=""))
+  setwd(paste(dir,"/anaResults",sep=""))
   text_uniq = read_csv(paste(site, "_", key_code, ".csv", sep = ""))
-  colnames(text_uniq) = c("link", "date", "category", "title_count", "para_count", "content_count", "total_count") 
+  colnames(text_uniq) = c("link", "date", "category", "title_count", "para_count", "content_count") 
   text_uniq$date = as_date(as.integer(text_uniq$date))
   return(text_uniq)
 }
@@ -310,35 +313,36 @@ first_real_text = function(string, n) {
 }
 
 # Append new data in yearly database
-update_final = function(x, site) {
-  year_col = year(x$date)
-  year = unique(year_col)
-  for (y in year) {
-    data = call_final(site, y)
-    if (is.na(y)) {
-      new = x[is.na(year_col),]
-    } else {
-      new = x[!is.na(year_col) & year_col == y,]
+while (FALSE) {
+  update_final = function(x, site) {
+    year_col = year(x$date)
+    year = unique(year_col)
+    for (y in year) {
+      data = call_final(site, y)
+      if (is.na(y)) {
+        new = x[is.na(year_col),]
+      } else {
+        new = x[!is.na(year_col) & year_col == y,]
+      }
+      data = rbind(data, new)
+      data = data[!duplicated(data$link),]
+      cat("writing ", y, "\n")
+      setwd(paste(dir,"/finalData",sep=""))
+      write_excel_csv(data, paste(site, "_", y, ".csv", sep = ""))
     }
-    data = rbind(data, new)
-    data = data[!duplicated(data$link),]
-    cat("writing ", y, "\n")
-    setwd(paste(dir,"/finalData",sep=""))
-    write_excel_csv(data, paste(site, "_", y, ".csv", sep = ""))
+    link = as.data.frame(x$link)
+    colnames(link) = "link"
+    link.list = call_link(site, "link")
+    if (!is.null(link.list)) colnames(link.list) = "link"
+    link.list = rbind(link.list, link) %>% unique()
+    setwd(paste(dir, "/finalLink", sep =""))
+    write_excel_csv(link.list, paste(site, "_link.csv", sep = ""))
+    gc()
   }
-  link = as.data.frame(x$link)
-  colnames(link) = "link"
-  link.list = call_link(site, "link")
-  if (!is.null(link.list)) colnames(link.list) = "link"
-  link.list = rbind(link.list, link) %>% unique()
-  setwd(paste(dir, "/finalLink", sep =""))
-  write_excel_csv(link.list, paste(site, "_link.csv", sep = ""))
-  gc()
 }
-
 # Create list of links
 create.linklist = function(site, start.year, end.year) {
-  save_dir = paste(dir, "/", site, "/tempData", sep = "")
+  #save_dir = paste(dir, "/", site, "/tempData", sep = "")
   start.year = as.integer(start.year)
   end.year = as.integer(end.year)
   linklist = c()
@@ -364,13 +368,12 @@ total_count = function(x, col.count) {
 }
 
 
-
-
 # Save final data with suffix
 save_final = function(x, site, name) {
-  setwd(paste(dir,"/",site,"/finalData",sep=""))
+  setwd(paste(dir,"/finalData",sep=""))
   write_excel_csv(x, name)
 }
+
 
 
 
@@ -485,27 +488,41 @@ list.sites = function() {
   return(final_files)
 }
 
-time_summary = function(site) {
-  setwd(paste(dir,"/finalData",sep=""))
+list.years = function(site) {
   file_index = which(!is.na(str_locate(list.files(), site)[,1]))
   file_names = list.files()[file_index]
   year_list = str_sub(file_names, mean(str_locate(file_names,'_')[,1])+1, 
-                      mean(str_locate(file_names, '\\.')[,1])) %>% as.integer()
+                      mean(str_locate(file_names,'_')[,1])+4) %>% as.integer()
   year_list = year_list[!is.na(year_list)]
+  return(year_list)
+}
+
+time_summary = function(site, unit = 'month') {
+  year_list = list.years(site)
   out.table = c()
   for (year in year_list) {
     data = call_final(site, index = year)
+    data = data[!duplicated(data$link),]
     data = cbind(data, time_round(data, 'date'))
-    datasum = group_by(data, category, x.month) 
+    if (unit == 'date') {
+      datasum = group_by(data, category, x.month)
+    } else {
+      if (unit == 'year') {
+        datasum = group_by(data, category, x.year)
+      } else {
+        if (unit == 'month') {
+          datasum = group_by(data, category, x.month)
+        } else {
+          datasum = group_by(data, category, x.month)
+        }
+      }
+    }
     datasum = summarise(datasum, no.ar = sum(!is.na(link)))
     out.table = rbind(out.table, datasum)
   }
-  ggplot(out.table, aes(x = x.month, y = no.ar)) +
-    geom_bar(stat = 'identity', fill="#CC0000") +
-    facet_wrap(~category)
   return(out.table)
-  
 }
+
 #-------------------------------------#
 #       Text analysis module          #
 #-------------------------------------#

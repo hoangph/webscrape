@@ -5,7 +5,7 @@
 ################################################-
 
 #-------------------------#
-####   CONTROL BOARD   ####
+####   CONTROL PANEL   ####
 #-------------------------#
 #dir = "/home/hoangph/Documents/Webscrape"
 dir = "D:/Webscrape/webscrape"
@@ -26,11 +26,11 @@ if (machine != "ser" & operation == "ubuntu") filesync("ubuntu", "/usr/bin", pas
 
 #### __Targets ####
 
-sites_scr1 = c("vneconomy","ndh", "nguoiduatin", "vtc", "toquoc", 'doanhnhansaigon', 
+sites_scr1 = c("vneconomy","ndh", "vtc", "toquoc", 'doanhnhansaigon', 
                'thanhnien', 'laodong')
 sites_scr2 = c('vietnamnet', 'dantri', 'congluan', 'baodatviet', 'cafef', 'nhandan', 
                'baophapluat', 'vnexpress')
-
+sites = c(sites_scr1, sites_scr2)
 #### __configurations ####
 #Update: FALSE-no, TRUE-yes, 'test'-test
 #update = 2
@@ -96,7 +96,7 @@ scrape_site = function(site, update, webscheme) {
 #---------------------------------------------------#
 ####          MERGE FILES INTO DATABASE          ####
 #--------------------------------------------------#
-update_final = function() {
+update_final = function(sites) {
   setwd(dir)
   source("parameter.R")
   source("functions.R")

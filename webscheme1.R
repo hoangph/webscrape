@@ -138,7 +138,7 @@ runscheme = function(site, update, last_date_table, link_list, start_date, end_d
       # merge cac file da scrape cua cac chuyen muc va lay link de so sanh
       merge_result = merge_temp(save_dir, site, code)
       link_list = rbind(link_list, merge_result[,1]) %>% unique()
-      setwd(paste(dir,"/", "/tempLink",sep=""))
+      setwd(paste(dir,"/", "tempLink",sep=""))
       write_excel_csv(merge_result[,1], paste(site,"_link.csv", sep=""))
       rm(merge_result)
       gc()
