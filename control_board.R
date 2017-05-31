@@ -40,7 +40,8 @@ sites = c(sites_scr1, sites_scr2)
 #---------------------------------------#
 ####            Scrape               ####
 #---------------------------------------#
-scrape_site = function(site, update) {
+scrape_site = function(site, update, file_index_by, 
+                       cm_done = c(), batch_size=200) {
   
   start_date = clean_date("01/01/2010")
   if (update == 'test') start_date <- today()
@@ -81,14 +82,19 @@ scrape_site = function(site, update) {
   setwd(dir)
   source('one_code_rules_all.R')
   
-  scrape.by_page(site = site, start_date = start_date, end_date = end_date,
-                link_list = link_list, last_date_table = last_date_table, 
-                update = update,
-                cm_done = cm_done, cm_list = cm_list, batch_size = 100)
-  scrape.by_date(site = site, start_date = start_date, end_date = end_date,
-                 link_list = link_list, last_date_table = last_date_table, 
-                 update = update,
-                 cm_done = cm_done, cm_list = cm_list, batch_size = 200)
+  if (file_index_by == 'page') {
+    scrape.by_page(site = site, start_date = start_date, end_date = end_date,
+                   link_list = link_list, last_date_table = last_date_table, 
+                   update = update,
+                   cm_done = cm_done, cm_list = cm_list, batch_size = 100)  
+  }
+  if (file_index_by == 'date') {
+    scrape.by_date(site = site, start_date = start_date, end_date = end_date,
+                   link_list = link_list, last_date_table = last_date_table, 
+                   update = update,
+                   cm_done = cm_done, cm_list = cm_list, batch_size = 200)  
+  }
+  
   
   if (update == 2) {
       setwd(save_dir)
@@ -106,7 +112,7 @@ scrape_site = function(site, update) {
   #---------------------------------------#
   
   # Update temp files: scraper -> Storage (Update)
-  if (update != 'test') {
+  if (update != 'test' & machine != 'ser') {
       filesync(operation = "ubuntu", freefilesync.dir = "/usr/bin", 
                batchfile = paste(site, "temp", machine, "sto", "ffs_batch", sep = "."))
       filesync(operation = "ubuntu", freefilesync.dir = "/usr/bin", 
