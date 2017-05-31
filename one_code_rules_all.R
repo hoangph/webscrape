@@ -2,7 +2,7 @@
 ### MODULE 1: PAGE LOOP ONLY #######
 #==================================#
 scrape.by_page = function(site, start_date, end_date, last_date_table, 
-                          file_index_by = 'page',
+                          file_index_by = 'page', update,
                           link_list, cm_list, batch_size = 20, cm_done = c()) {
   cm_list = cm_list[!cm_list$tencm %in% cm_done,]
   # Vong lap chuyen muc
@@ -26,7 +26,8 @@ scrape.by_page = function(site, start_date, end_date, last_date_table,
     skipped_page = c()
     last_count = 0
     final.record.signal = 0
-    sp = start_point(file_index_by = file_index_by, save_dir, ten_cm)
+    sp = start_point(file_index_by = file_index_by, save_dir = save_dir,
+                     site = site, code = ten_cm)
     k = sp[[1]]
     i = sp[[2]]
     
@@ -45,7 +46,7 @@ scrape.by_page = function(site, start_date, end_date, last_date_table,
       ## While the object is still not filled completely
       while (sum(is.na(final[["link"]])) > 0) {
         ## Message
-        cat("Looking into date", i," section: ", as.character(ten_cm),"\n")
+        cat("Looking into page", i," section: ", as.character(ten_cm),"\n")
         
         ## Indentify the articles on page i
         link_list_result = source %>% paste(i,source_suffix,sep = "") %>% 
@@ -179,8 +180,9 @@ scrape.by_page = function(site, start_date, end_date, last_date_table,
 ### MODULE 2: DATE LOOP ONLY #######
 #==================================#
 scrape.by_date = function(site, start_date, end_date, last_date_table, 
-                          file_index_by = 'date',
+                          file_index_by = 'date', cm_done = c(), update,
                           link_list, cm_list, batch_size = 20) {
+  cm_list = cm_list[!cm_list$tencm %in% cm_done,]
   # Vong lap chuyen muc
   for (j in c(1:nrow(cm_list))) {
     # Khai bao Parameters
@@ -202,7 +204,8 @@ scrape.by_date = function(site, start_date, end_date, last_date_table,
     skipped_page = c()
     last_count = 0
     final.record.signal = 0
-    sp = start_point(file_index_by = file_index_by, save_dir, ten_cm)
+    sp = start_point(file_index_by = file_index_by, save_dir = save_dir,
+                     site = site, code = ten_cm)
     k = sp[[1]]
     i = sp[[2]]
     
@@ -359,8 +362,9 @@ scrape.by_date = function(site, start_date, end_date, last_date_table,
 ### MODULE 3: DATE & PAGE LOOP #######
 #====================================#
 scrape.by_date_page = function(site, start_date, end_date, last_date_table, 
-                               file_index_by='date',
+                               file_index_by='date', cm_done = c(),update,
                                link_list, cm_list, batch_size = 20) {
+  cm_list = cm_list[!cm_list$tencm %in% cm_done,]
   # Vong lap chuyen muc
   for (j in c(1:nrow(cm_list))) {
     # Khai bao Parameters
@@ -382,7 +386,8 @@ scrape.by_date_page = function(site, start_date, end_date, last_date_table,
     skipped_page = c()
     last_count = 0
     final.record.signal = 0
-    sp = start_point(file_index_by = file_index_by, save_dir, ten_cm)
+    sp = start_point(file_index_by = file_index_by, save_dir = save_dir,
+                     site = site, code = ten_cm)
     k = sp[[1]]
     i = sp[[2]]
     

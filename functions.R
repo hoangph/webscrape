@@ -18,7 +18,7 @@ call.library()
 ###--------------------------------###
 
 # Starting point
-start_point = function(file_index_by, save_dir, code) {
+start_point = function(file_index_by, save_dir, site, code) {
   setwd(save_dir)
   cm = str_split(list.files(), '_') %>% data.frame()
   if (nrow(cm) == 0) {
@@ -30,8 +30,7 @@ start_point = function(file_index_by, save_dir, code) {
       i = format_date(today())
     }
   } else {
-    file_list = list.files()[which(cm[2,] == code)]
-    
+    file_list = list.files()[which(cm[2,] == code & cm[1,] == site)]
     k_index = str_locate(file_list,pattern = "file")[,1]
     p_index = str_locate(file_list,pattern = "page")[,1]
     e_index = str_locate(file_list,pattern = "_.csv")[,1]
@@ -230,6 +229,7 @@ call_file = function(file.type, site, index) {
   if (file.type == "link") setwd(paste(dir,"/finalLink",sep=""))
   if (file.type == "tlink") setwd(paste(dir,"/tempLink",sep=""))
   if (file.type == "processed") setwd(paste(dir,"/finalProcessed",sep=""))
+  if (file.type == "final.store") setwd("/run/user/1000/gvfs/smb-share:server=mi_storage,share=intern/webscrape/finalData")
   text = c()
   for (i in c(1:length(index))) {
     file.name = paste(site, "_", index[i], ".csv", sep = "")

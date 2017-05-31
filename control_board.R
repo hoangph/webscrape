@@ -40,7 +40,7 @@ sites = c(sites_scr1, sites_scr2)
 #---------------------------------------#
 ####            Scrape               ####
 #---------------------------------------#
-scrape_site = function(site, update, webscheme) {
+scrape_site = function(site, update) {
   
   start_date = clean_date("01/01/2010")
   if (update == 'test') start_date <- today()
@@ -53,13 +53,15 @@ scrape_site = function(site, update, webscheme) {
   
   if (update == 1) {
     year_end = year(end_date)
-    latest.data = call_final(site, year_end)
+    if (machine == 'ser') final.source = 'final'
+    if (machine == 'scr1') final.source = 'final.store'
+    latest.data = call_file(site = site, file.type = final.source, year_end)
     # In case latest data is from last year
     while (length(latest.data) == 0) {
       year_end = year_end-1
-      latest.data = call_final(site, year_end)
+      latest.data = call_file(site = site, file.type = final.source, year_end)
     }
-    
+    latest.data = latest.data[!is.na(latest.data$date),]
     last_date_table = c()
     for (cm in unique(latest.data$category)) {
       maxd = max(latest.data$date[latest.data$category == cm])
@@ -73,15 +75,20 @@ scrape_site = function(site, update, webscheme) {
   
   # List of sections to scrape
   cm_list = link_par(site)
-  cm_done = c()
+  
   cat('done preparing n/')
   
   setwd(dir)
   source('one_code_rules_all.R')
-
+  
   scrape.by_page(site = site, start_date = start_date, end_date = end_date,
                 link_list = link_list, last_date_table = last_date_table, 
+                update = update,
                 cm_done = cm_done, cm_list = cm_list, batch_size = 100)
+  scrape.by_date(site = site, start_date = start_date, end_date = end_date,
+                 link_list = link_list, last_date_table = last_date_table, 
+                 update = update,
+                 cm_done = cm_done, cm_list = cm_list, batch_size = 200)
   
   if (update == 2) {
       setwd(save_dir)
@@ -99,7 +106,7 @@ scrape_site = function(site, update, webscheme) {
   #---------------------------------------#
   
   # Update temp files: scraper -> Storage (Update)
-  if (update != 2) {
+  if (update != 'test') {
       filesync(operation = "ubuntu", freefilesync.dir = "/usr/bin", 
                batchfile = paste(site, "temp", machine, "sto", "ffs_batch", sep = "."))
       filesync(operation = "ubuntu", freefilesync.dir = "/usr/bin", 
