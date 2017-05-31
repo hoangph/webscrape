@@ -34,7 +34,7 @@ runscheme = function(site, update, last_date_table, link_list, start_date, end_d
     
     while (ok) {
       # Lay nhieu link trong chuyen muc mot luc
-      if (update == TRUE) temp = rep(NA, 20)
+      if (update == TRUE) temp = rep(NA, 100)
       if (update != TRUE) temp = rep(NA, 200)
       if (update == 'test') temp = rep(NA, 20)
       final = list(link = temp, title = temp, date = temp, content = temp)
@@ -50,7 +50,9 @@ runscheme = function(site, update, last_date_table, link_list, start_date, end_d
           get_article(article_selector)
         if (length(link_list_result[[3]])==0) { last_count = last_count + 1 }
         if (length(link_list_result[[3]]) != 0 & length(unique(link_list_result[[3]])) < 10) {
-          if (!exists("linkcheck")) { linkcheck = unique(link_list_result[[3]]) } else {
+          if (!exists("linkcheck")) { 
+            linkcheck = unique(link_list_result[[3]]) 
+          } else {
             if (mean(linkcheck == unique(link_list_result[[3]]))==1) last_count = last_count + 1
           }
         }
@@ -104,7 +106,7 @@ runscheme = function(site, update, last_date_table, link_list, start_date, end_d
           }
         }
       }
-      rm(linkcheck)
+      #rm(linkcheck)
       if (length(which(!is.na(final[["link"]]))) > 0) {
         #___Doc cac bai trong list link vua lay ####
         article_no = length(final[["link"]])
@@ -127,10 +129,10 @@ runscheme = function(site, update, last_date_table, link_list, start_date, end_d
         if (last_date < start_date) { ok = FALSE } 
         if (ok == FALSE) {
           message("Done scraping with specified time range. Saving...")
-          save_list_csv(final, save_dir, site, code, col_names, suffix = paste("file",k,"page",i-1,sep=""))
+          if (update != 'test') save_list_csv(final, save_dir, site, code, col_names, suffix = paste("file",k,"page",i-1,sep=""))
         } else {
           cat("Saving...\n")
-          save_list_csv(final,save_dir, site, code,col_names,suffix = paste("file",k,"page",i-1,sep=""))
+          if (update != 'test') save_list_csv(final,save_dir, site, code,col_names,suffix = paste("file",k,"page",i-1,sep=""))
           k = k + 1
           gc()
         }
@@ -138,8 +140,10 @@ runscheme = function(site, update, last_date_table, link_list, start_date, end_d
       # merge cac file da scrape cua cac chuyen muc va lay link de so sanh
       merge_result = merge_temp(save_dir, site, code)
       link_list = rbind(link_list, merge_result[,1]) %>% unique()
-      setwd(paste(dir,"/", "tempLink",sep=""))
-      write_excel_csv(merge_result[,1], paste(site,"_link.csv", sep=""))
+      if (update != 'test') {
+        setwd(paste(dir,"/", "tempLink",sep=""))
+        write_excel_csv(merge_result[,1], paste(site,"_link.csv", sep=""))
+      }
       rm(merge_result)
       gc()
     }

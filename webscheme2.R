@@ -8,9 +8,9 @@ runscheme = function(site, update, last_date_table, link_list, start_date, end_d
   #if (update == 2) start_date = clean_date("01-01-2010")
   cm_list = link_par(site)
   for (j in c(1:nrow(cm_list))) {
-    code = as.character(cm_list$tencm[j])
+    ten_cm = as.character(cm_list$tencm[j])
     source = cm_list$linkcm[j]
-    par = node_par(site, code)
+    par = node_par(site, ten_cm)
     link_prefix = par[["link_prefix"]]
     source_suffix = par[["source_suffix"]]
     content_selector = par[["content_selector"]]
@@ -20,16 +20,16 @@ runscheme = function(site, update, last_date_table, link_list, start_date, end_d
     #rm(par)
     #Check bai da scrape gan nhat
     if (update == 1) {
-      d = last_date_table$date[last_date_table$category == code]
-      if (length(d) > 0) end_date = d
+      d = last_date_table$date[last_date_table$category == ten_cm]
+      if (length(d) > 0) start_date = d
       rm(d)
     }
     #___Vong lap de lay link####
     # Starting point
-    sp = start_point(2, save_dir)
+    sp = start_point(file_index_by='date', code=ten_cm, save_dir=save_dir)
     k = sp[[1]]
     i = sp[[2]]
-    
+    if (file_index_by == 'date') d = as.Date(i, format = '%d-%m-%Y')
     # Loop
     ok = TRUE
     if (exists("skip_cm")) {
@@ -137,10 +137,10 @@ runscheme = function(site, update, last_date_table, link_list, start_date, end_d
         if (last_date < start_date) { ok = FALSE } 
         if (ok == FALSE) {
           message("Done scraping with specified time range. Saving...")
-          save_list_csv(final, save_dir, site, code, col_names, suffix = paste("file",k,"page",d+1,sep=""))
+          save_list_csv(final, save_dir, site, ten_cm, col_names, suffix = paste("file",k,"page",d+1,sep=""))
         } else {
           cat("Saving...\n")
-          save_list_csv(final,save_dir, site, code,col_names,suffix = paste("file",k,"page",d+1,sep=""))
+          save_list_csv(final,save_dir, site, ten_cm, col_names,suffix = paste("file",k,"page",d+1,sep=""))
           k = k + 1
           gc()
         }

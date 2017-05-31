@@ -12,6 +12,7 @@ dir = "D:/Webscrape/webscrape"
 setwd(dir)
 source("parameter.R", encoding = "UTF-8")
 source("functions.R")
+source('one_code_rules_all.R')
 machine = "ser"
 operation = "windows"
 
@@ -51,22 +52,36 @@ scrape_site = function(site, update, webscheme) {
   rm(link_temp)
   
   if (update == 1) {
-    latest.data = call_final(site, year(end_date))
+    year_end = year(end_date)
+    latest.data = call_final(site, year_end)
+    # In case latest data is from last year
+    while (length(latest.data) == 0) {
+      year_end = year_end-1
+      latest.data = call_final(site, year_end)
+    }
+    
     last_date_table = c()
     for (cm in unique(latest.data$category)) {
-      d = max(latest.data$date[latest.data$category == cm])
-      last_date_table = rbind(last_date_table, data.frame(category = cm, date = d))
-      rm(d)
+      maxd = max(latest.data$date[latest.data$category == cm])
+      mind = min(latest.data$date[latest.data$category == cm])
+      last_date_table = rbind(last_date_table, data.frame(category = cm, date = maxd, min_date = mind))
+      rm(maxd, mind)
     }
     rm(latest.data)
     gc()
   }
   
-  cat('done preparing')
+  # List of sections to scrape
+  cm_list = link_par(site)
+  cm_done = c()
+  cat('done preparing n/')
   
   setwd(dir)
-  source(paste0('webscheme', webscheme, '.R'))
-  runscheme(site, update, last_date_table, link_list, start_date, end_date)
+  source('one_code_rules_all.R')
+
+  scrape.by_page(site = site, start_date = start_date, end_date = end_date,
+                link_list = link_list, last_date_table = last_date_table, 
+                cm_done = cm_done, cm_list = cm_list, batch_size = 100)
   
   if (update == 2) {
       setwd(save_dir)
@@ -142,6 +157,15 @@ while (FALSE) {
 #--------------------------------------------#
 ####          UPDATE WEBSITES             ####
 #--------------------------------------------#
+
+#Test tools
+test_all = function(sites) {
+  for (i in c(1:length(sites))) {
+    site = sites[i]
+    webscheme = node_par(up.site)[['webscheme']]
+    scrape_site(site = up.site, update = 'test', webscheme = webscheme)
+  }
+}
 
 scrape_all = function(sites) {
   for (i in c(1:length(sites))) {

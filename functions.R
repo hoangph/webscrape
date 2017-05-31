@@ -18,12 +18,17 @@ call.library()
 ###--------------------------------###
 
 # Starting point
-start_point = function(webscheme, save_dir, code) {
+start_point = function(file_index_by, save_dir, code) {
   setwd(save_dir)
   cm = str_split(list.files(), '_') %>% data.frame()
   if (nrow(cm) == 0) {
-    k = 1
-    i = 1
+    if (file_index_by=='page') {
+      k = 1
+      i = 1
+    } else {
+      k = 1
+      i = format_date(today())
+    }
   } else {
     file_list = list.files()[which(cm[2,] == code)]
     
@@ -35,19 +40,19 @@ start_point = function(webscheme, save_dir, code) {
     k = max(as.integer(k_index[!is.na(k_index)])) + 1
     if (k==-Inf) {k = 1}
     
-    if (webscheme == 1) {
+    if (file_index_by == 'page') {
       i = max(as.integer(p_index[!is.na(p_index)])) + 1
       
       if (i==-Inf) {i = 1}
     }
-    if (webscheme %in% c(2,3)) {
+    if (file_index_by == 'date') {
       od = as.Date(p_index[!is.na(p_index)], "%Y-%m-%d")
       if (length(od) == 0) {
-        d = end_date
-        i = format(d, source_dateformat)
+        d = today()
+        i = format_date(d)
       } else {
-        d = od
-        i = format(d, source_dateformat)
+        d = od - 1
+        i = format_date(d)
       }
     }
   }
