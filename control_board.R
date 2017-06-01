@@ -59,7 +59,7 @@ scrape_site = function(site, update, file_index_by,
     latest.data = call_file(site = site, file.type = final.source, year_end)
     # In case latest data is from last year
     while (length(latest.data) == 0) {
-      year_end = year_end-1
+      year_end = year_end-2
       latest.data = call_file(site = site, file.type = final.source, year_end)
     }
     latest.data = latest.data[!is.na(latest.data$date),]
@@ -86,15 +86,20 @@ scrape_site = function(site, update, file_index_by,
     scrape.by_page(site = site, start_date = start_date, end_date = end_date,
                    link_list = link_list, last_date_table = last_date_table, 
                    update = update,
-                   cm_done = cm_done, cm_list = cm_list, batch_size = 100)  
+                   cm_done = cm_done, cm_list = cm_list, batch_size = batch_size)  
   }
   if (file_index_by == 'date') {
     scrape.by_date(site = site, start_date = start_date, end_date = end_date,
                    link_list = link_list, last_date_table = last_date_table, 
                    update = update,
-                   cm_done = cm_done, cm_list = cm_list, batch_size = 200)  
+                   cm_done = cm_done, cm_list = cm_list, batch_size = batch_size)  
   }
-  
+  if (file_index_by == 'date_page') {
+    scrape.by_date_page(site = site, start_date = start_date, end_date = end_date,
+                        link_list = link_list, last_date_table = last_date_table, 
+                        update = update,
+                        cm_done = cm_done, cm_list = cm_list, batch_size = batch_size)  
+  }
   
   if (update == 2) {
       setwd(save_dir)

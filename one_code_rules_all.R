@@ -54,19 +54,16 @@ scrape.by_page = function(site, start_date, end_date, last_date_table,
         ## If no article is found -> last page of the section 
         ## -> count 20 times before stopping
         if (length(link_list_result[[3]])==0) last_count = last_count + 1
-        ## If too few articles are found (<10) then compare with last page
-        ## -> if duplicated -> end of section
+        ## Compare with last page -> if duplicated -> end of section
         if (length(link_list_result[[3]]) != 0 &
-            length(unique(link_list_result[[3]])) < 10 &
             !exists("last_page_links")) {
           # First time happens
           last_page_links = unique(link_list_result[[3]])
         } else {
           # Compare to last page
           if (length(link_list_result[[3]]) != 0 &
-              length(unique(link_list_result[[3]])) < 10 &
               exists("last_page_links")) {
-            if (mean(last_page_links == unique(link_list_result[[3]]))==1) last_count = last_count + 1
+            if (mean(unique(link_list_result[[3]])==1 %in% last_page_links)==1) last_count = last_count + 1
           }
         }
         ## After 20 counts -> signal to change section
@@ -245,7 +242,7 @@ scrape.by_date = function(site, start_date, end_date, last_date_table,
           if (length(link_list_result[[3]]) != 0 &
               length(unique(link_list_result[[3]])) < 10 &
               exists("last_page_links")) {
-            if (mean(last_page_links == unique(link_list_result[[3]]))==1) last_count = last_count + 1
+            if (mean(unique(link_list_result[[3]])==1 %in% last_page_links)==1) last_count = last_count + 1
           }
         }
         ## After 20 counts -> signal to change section
@@ -362,7 +359,7 @@ scrape.by_date = function(site, start_date, end_date, last_date_table,
 ### MODULE 3: DATE & PAGE LOOP #######
 #====================================#
 scrape.by_date_page = function(site, start_date, end_date, last_date_table, 
-                               file_index_by='date', cm_done = c(),update,
+                               file_index_by='date_page', cm_done = c(),update,
                                link_list, cm_list, batch_size = 20) {
   cm_list = cm_list[!cm_list$tencm %in% cm_done,]
   # Vong lap chuyen muc
@@ -371,12 +368,16 @@ scrape.by_date_page = function(site, start_date, end_date, last_date_table,
     ten_cm = as.character(cm_list$tencm[j])
     source = cm_list$linkcm[j]
     scrape_params = node_par(site, ten_cm)
-    link_prefix = scrape_params[["link_prefix"]]
-    source_suffix = scrape_params[["source_suffix"]]
-    content_selector = scrape_params[["content_selector"]]
-    date_selector = scrape_params[["date_selector"]]
-    article_selector = scrape_params[["article_selector"]]
-    save_dir = scrape_params[["save_dir"]]
+    
+    link_prefix = par[["link_prefix"]]
+    source_suffix = par[["source_suffix"]]
+    source_pagenumber = par[["source_pagenumber"]]
+    source_dateformat = par[["source_dateformat"]]
+    content_selector = par[["content_selector"]]
+    date_selector = par[["date_selector"]]
+    article_selector = par[["article_selector"]]
+    save_dir = par[["save_dir"]]
+    
     # For updating: end at the date of the last record
     if (update == 1) {
       d = last_date_table$date[last_date_table$category == ten_cm]
@@ -389,9 +390,11 @@ scrape.by_date_page = function(site, start_date, end_date, last_date_table,
     sp = start_point(file_index_by = file_index_by, save_dir = save_dir,
                      site = site, code = ten_cm)
     k = sp[[1]]
-    i = sp[[2]]
-    
-    d = as.Date(i, format = '%d-%m-%Y')
+    # This i is not in the right format to be added to the links
+    i.wrong_format = sp[[2]]
+    d = as.Date(i.wrong_format, format = '%d-%m-%Y')
+    # Transform to the right format
+    i = format_date(d, source_dateformat)
     # Loop within one section
     while (final.record.signal == 0) {
       # Create a big object for everything 
@@ -409,12 +412,13 @@ scrape.by_date_page = function(site, start_date, end_date, last_date_table,
         ## Loop within pages of each date 
         last_daily = 0 
         page = 0
-        while (last_daily <= 2) { #try twice before stop
+        while (last_daily < 2) { #try twice before stop
           page = page + 1
           ## Message
           cat("Looking into date", i," page:", page, ", section: ", as.character(ten_cm),"\n")      
           ## Indentify the articles on page i
-          t.link_list_result = source %>% paste(i, "/", source_pagenumber, p, source_suffix, sep = "") %>% 
+          t.link_list_result = source %>% paste(i, "/", source_pagenumber, 
+                                                page, source_suffix, sep = "") %>% 
             get_article(article_selector)
           ## If no article is found -> last page of that day 
           if (length(t.link_list_result[[3]]) == 0) last_daily = last_daily + 1
@@ -428,19 +432,17 @@ scrape.by_date_page = function(site, start_date, end_date, last_date_table,
         ## If no article is found -> earliest date of the section 
         ## -> count 20 times before stopping
         if (length(link_list_result[[3]])==0) last_count = last_count + 1
-        ## If too few articles are found (<10) then compare with last page
+        ## Compare with last page
         ## -> if duplicated -> end of section
         if (length(link_list_result[[3]]) != 0 &
-            length(unique(link_list_result[[3]])) < 10 &
             !exists("last_page_links")) {
           # First time happens
           last_page_links = unique(link_list_result[[3]])
         } else {
           # Compare to last page
           if (length(link_list_result[[3]]) != 0 &
-              length(unique(link_list_result[[3]])) < 10 &
               exists("last_page_links")) {
-            if (mean(last_page_links == unique(link_list_result[[3]]))==1) last_count = last_count + 1
+            if (mean(unique(link_list_result[[3]])==1 %in% last_page_links)==1) last_count = last_count + 1
           }
         }
         ## After 20 counts -> signal to change section
@@ -466,7 +468,7 @@ scrape.by_date_page = function(site, start_date, end_date, last_date_table,
           message("Skipping page...", i)
           skipped = c(skipped, i)
           d = d - 1
-          i = format_date(d)
+          i = format_date(d, source_dateformat)
           ### Next page in loop
           next
         }
@@ -486,7 +488,7 @@ scrape.by_date_page = function(site, start_date, end_date, last_date_table,
           message("Error: link and title mismatched, skipping page...") 
           skipped = c(skipped, i)
           d = d - 1
-          i = format_date(d)
+          i = format_date(d, source_dateformat)
           ### Next page in loop
           next
         }
@@ -504,7 +506,7 @@ scrape.by_date_page = function(site, start_date, end_date, last_date_table,
         
         # Done with current page, move to next page of the same section
         d = d - 1
-        i = format_date(d)
+        i = format_date(d, source_dateformat)
       } # End page loop
       
       # By now we have had the first few links of this section

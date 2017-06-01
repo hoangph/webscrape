@@ -7,7 +7,7 @@ call.library = function() {
   library(lubridate)
   library(rvest)
   library(stringr)
-  library(tm)
+  #library(tm)
   library(stringi)
   library(purrr)
 }
@@ -44,7 +44,7 @@ start_point = function(file_index_by, save_dir, site, code) {
       
       if (i==-Inf) {i = 1}
     }
-    if (file_index_by == 'date') {
+    if (file_index_by == 'date' | file_index_by == 'date_page') {
       od = as.Date(p_index[!is.na(p_index)], "%Y-%m-%d")
       if (length(od) == 0) {
         d = today()
@@ -136,8 +136,8 @@ a = function (edate) {
 }
 
 # Reformat date: US -> Euro
-format_date = function (date) {
-  format(date, "%d-%m-%Y")
+format_date = function (date, format = "%d-%m-%Y") {
+  format(date, format)
 }
 
 # Read article's content

@@ -266,6 +266,8 @@ node_par = function(site, cm = NULL) {
     link_prefix = "http://thanhnien.vn"
     # Nodes
     source_suffix = ".html"
+    source_pagenumber = "trang-"
+    source_dateformat = "%d/%m/%Y"
     if (cm =="toiviet") {
       content_selector = "strong , #abody div, #chapeau div"
     } else {
@@ -274,6 +276,17 @@ node_par = function(site, cm = NULL) {
     date_selector = ".meta time"
     article_selector = ".clearfix .title"
     webscheme = 1
+    
+    # Nodes
+    source_suffix = ".chn"
+    source_pagenumber = "trang-"
+    source_dateformat = "%d/%m/%Y"
+    article_selector = "h3 a"
+    content_selector = ".sapo, .newsbody p"
+    date_selector = ".date_zoom .date"
+    # Link prefix
+    link_prefix = "http://cafef.vn"
+    webscheme = 3
   }
   
   
