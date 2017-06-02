@@ -8,14 +8,14 @@ link_par = function(site) {
   # Thanhnien.vn
   if (site == "thanhnien") {
     tencm = c("thoisu","doisong","toiviet","giaoduc","kinhdoanh","gioitre","suckhoe","vanhoa")
-    linkcm = c("http://thanhnien.vn/thoi-su/",
-               "http://thanhnien.vn/doi-song/",
-               "http://thanhnien.vn/toi-viet/date/trang-",
-               "http://thanhnien.vn/giao-duc/date/trang-",
-               "http://thanhnien.vn/kinh-doanh/date/trang-",
-               "http://thanhnien.vn/gioi-tre/date/trang-",
-               "http://thanhnien.vn/suc-khoe/date/trang-",
-               "http://thanhnien.vn/van-hoa/date/trang-")
+    linkcm = c("http://thanhnien.vn/thoi-su",
+               "http://thanhnien.vn/doi-song",
+               "http://thanhnien.vn/toi-viet",
+               "http://thanhnien.vn/giao-duc",
+               "http://thanhnien.vn/kinh-doanh",
+               "http://thanhnien.vn/gioi-tre",
+               "http://thanhnien.vn/suc-khoe",
+               "http://thanhnien.vn/van-hoa")
     cm_list = data.frame(tencm,linkcm)
     rm(tencm,linkcm)
   }
@@ -31,6 +31,17 @@ link_par = function(site) {
                "http://vietnamnet.vn/vn/date")
     tencm.link = c('thoi-su', "kinh-doanh", "giao-duc", "phap-luat", "doi-song",
                    "ban-doc")
+    cm_list = data.frame(tencm,linkcm, tencm.link)
+    rm(tencm,linkcm)
+  }
+  
+  # Vov.vn
+  if (site == "vov") {
+    tencm = c("chinhtri", "doisong", "kinhte", "xahoi", "phapluat",
+              "vanhoagiaitri", "nguoiviet")
+    linkcm = rep("http://vov.vn", length(tencm.link))
+    tencm.link = c('chinh-tri', "doi-song", "kinh-te", "xa-hoi", "phap-luat",
+                   "van-hoa-giai-tri", 'nguoi-viet')
     cm_list = data.frame(tencm,linkcm, tencm.link)
     rm(tencm,linkcm)
   }
@@ -277,6 +288,8 @@ node_par = function(site, cm = NULL) {
     date_selector = ".meta time"
     # Link prefix
     link_prefix = "http://thanhnien.vn"
+    link_structure = list("%s/%s/trang-%s%s",
+                          "source/i/page/source_suffix")
     webscheme = 3
   }
   
@@ -294,6 +307,22 @@ node_par = function(site, cm = NULL) {
     link_prefix = "http://vietnamnet.vn"
     link_structure = "source/i/ten_cm/source_suffix"
     webscheme = 2
+  }
+  
+  # vov.vn
+  if (site == "vov") {
+    # Nodes
+    source_suffix = ""
+    source_pagenumber = "trang"
+    source_dateformat = "%d-%m-%Y"
+    article_selector = ".cat-listnews .cms-link"
+    content_selector = "#article-body"
+    date_selector = "#ctl00_mainContent_ctl00_pnMeta time"
+    # Link prefix
+    link_prefix = "http://vov.vn"
+    link_structure = list("%s/%s/trang%s?bydate=%s",
+                          "source/ten_cm/page/i")
+    webscheme = 3
   }
   
   # dantri.com.vn
@@ -389,7 +418,9 @@ node_par = function(site, cm = NULL) {
     date_selector = ".date-published"
     # Link prefix
     link_prefix = "http://congluan.vn"
+    
     webscheme = 1
+
   }
   
   # nguoiduatin.vn

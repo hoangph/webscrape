@@ -19,19 +19,15 @@ call.library()
 
 # Generating links based on specified structure
 construct_link = function(link_structure,
-                          source="", i="", ten_cm="", 
+                          source="", i="", ten_cm="",
                           page="", source_suffix="") {
-  elements = str_split(link_structure, '/') %>% unlist
-  html_link = NULL
-  for (e in seq(length(elements))) {
-    if (e == 1) {
-      html_link = get(elements[e])
-    } else {
-      html_link = paste(html_link, get(elements[e]), sep = "/")
-    }
+  elements = str_split(link_structure[[2]], '/') %>% unlist
+  str_format = link_structure[[1]]
+  count = str_count(str_format, "%s")
+  for (c in seq(count)) {
+    str_format = str_replace(str_format, "%s", get(elements[c]))
   }
-  
-  return(html_link)
+  return(str_format)
 }
 
 # Starting point

@@ -57,6 +57,7 @@ scrape.by_page = function(site, start_date, end_date, last_date_table,
                                             i = i, ten_cm = tencm.link, 
                                             source_suffix = source_suffix) %>%
           get_article(article_selector)
+        
         ## If no article is found -> possibly last page of the section 
         ## -> count 20 times before stopping
         ## if there is article -> only some dates have no articles
@@ -452,10 +453,11 @@ scrape.by_date_page = function(site, start_date, end_date, last_date_table,
           ## Message
           cat("Looking into date", i," page:", page, ", section: ", as.character(ten_cm),"\n")      
           ## Indentify the articles on page i
-          t.link_list_result = construct_link(link_structure, source = source,
-                                              i = i, ten_cm = tencm.link, 
-                                              source_suffix = source_suffix) %>%
-            get_article(article_selector)
+          html_link = construct_link(link_structure, source = source,
+                                     i = i, ten_cm = tencm.link, page= page,
+                                     source_suffix = source_suffix)
+          message(html_link)
+          t.link_list_result = html_link %>% get_article(article_selector)
           ## If no article is found -> last page of that day 
           if (length(t.link_list_result[[3]]) == 0) last_daily = last_daily + 1
           ## Join links from several pages to one object
