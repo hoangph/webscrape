@@ -25,6 +25,7 @@ scrape.by_page = function(site, start_date, end_date, last_date_table,
     }
     skipped_page = c()
     last_count = 0
+    empty_count = 0
     final.record.signal = 0
     sp = start_point(file_index_by = file_index_by, 
                      save_dir = paste(save_dir_prefix, site, sep = '/'),
@@ -52,9 +53,14 @@ scrape.by_page = function(site, start_date, end_date, last_date_table,
         ## Indentify the articles on page i
         link_list_result = source %>% paste(i,source_suffix,'/',sep = "") %>% 
           get_article(article_selector)
-        ## If no article is found -> last page of the section 
+        ## If no article is found -> possibly last page of the section 
         ## -> count 20 times before stopping
-        if (length(link_list_result[[3]])==0) last_count = last_count + 1
+        ## if there is article -> only some dates have no articles
+        ## -> reset empty_count 
+        if (length(link_list_result[[3]])==0) {
+          last_count = last_count + 1
+          empty_count = empty_count + 1
+        } else { empty_count = 0 }
         ## Compare with last page -> if duplicated -> end of section
         if (length(link_list_result[[3]]) != 0 &
             !exists("last_page_links")) {
@@ -68,7 +74,7 @@ scrape.by_page = function(site, start_date, end_date, last_date_table,
           }
         }
         ## After 20 counts -> signal to change section
-        if (last_count >= 20) final.record.signal = 1
+        if (last_count >= 20 | empty_count >= 20) final.record.signal = 1
         if (final.record.signal == 1) { 
           message("Last page reached")
           rm(last_page_links)
@@ -203,6 +209,7 @@ scrape.by_date = function(site, start_date, end_date, last_date_table,
     }
     skipped_page = c()
     last_count = 0
+    empty_count = 0
     final.record.signal = 0
     sp = start_point(file_index_by = file_index_by, 
                      save_dir = paste(save_dir_prefix, site, sep = '/'),
@@ -234,26 +241,32 @@ scrape.by_date = function(site, start_date, end_date, last_date_table,
         ## Indentify the articles on page i
         link_list_result = source %>% paste(i,source_suffix,sep = "") %>% 
           get_article(article_selector)
-        ## If no article is found -> last page of the section 
+        ## If no article is found -> possibly last page of the section 
         ## -> count 20 times before stopping
-        if (length(link_list_result[[3]])==0) last_count = last_count + 1
-        ## If too few articles are found (<10) then compare with last page
+        ## if there is article -> only some dates have no articles
+        ## -> reset empty_count 
+        if (length(link_list_result[[3]])==0) {
+          last_count = last_count + 1
+          empty_count = empty_count + 1
+        } else { empty_count = 0 }
+        ## Compare with last page
         ## -> if duplicated -> end of section
         if (length(link_list_result[[3]]) != 0 &
-            length(unique(link_list_result[[3]])) < 10 &
             !exists("last_page_links")) {
           # First time happens
           last_page_links = unique(link_list_result[[3]])
-        } else {
+        }
+        if (length(link_list_result[[3]]) != 0 &
+            exists("last_page_links")) {
           # Compare to last page
           if (length(link_list_result[[3]]) != 0 &
-              length(unique(link_list_result[[3]])) < 10 &
               exists("last_page_links")) {
             if (mean(unique(link_list_result[[3]])==1 %in% last_page_links)==1) last_count = last_count + 1
-          }
+          }  
         }
+        
         ## After 20 counts -> signal to change section
-        if (last_count >= 20) final.record.signal = 1
+        if (last_count >= 20 | empty_count >= 20) final.record.signal = 1
         if (final.record.signal == 1) { 
           message("Last page reached")
           rm(last_page_links)
@@ -398,6 +411,7 @@ scrape.by_date_page = function(site, start_date, end_date, last_date_table,
     }
     skipped_page = c()
     last_count = 0
+    empty_count = 0
     final.record.signal = 0
     sp = start_point(file_index_by = file_index_by,
                      save_dir = paste(save_dir_prefix, site, sep = '/'),
@@ -442,9 +456,14 @@ scrape.by_date_page = function(site, start_date, end_date, last_date_table,
           }
         } #End loop within one date
         
-        ## If no article is found -> earliest date of the section 
+        ## If no article is found -> possibly last page of the section 
         ## -> count 20 times before stopping
-        if (length(link_list_result[[3]])==0) last_count = last_count + 1
+        ## if there is article -> only some dates have no articles
+        ## -> reset empty_count 
+        if (length(link_list_result[[3]])==0) {
+          last_count = last_count + 1
+          empty_count = empty_count + 1
+        } else { empty_count = 0 }
         ## Compare with last page
         ## -> if duplicated -> end of section
         if (length(link_list_result[[3]]) != 0 &
@@ -459,7 +478,7 @@ scrape.by_date_page = function(site, start_date, end_date, last_date_table,
           }
         }
         ## After 20 counts -> signal to change section
-        if (last_count >= 20) final.record.signal = 1
+        if (last_count >= 20 | empty_count >= 20) final.record.signal = 1
         if (final.record.signal == 1) { 
           message("Last page reached")
           rm(last_page_links)
