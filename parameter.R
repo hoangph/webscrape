@@ -8,8 +8,8 @@ link_par = function(site) {
   # Thanhnien.vn
   if (site == "thanhnien") {
     tencm = c("thoisu","doisong","toiviet","giaoduc","kinhdoanh","gioitre","suckhoe","vanhoa")
-    linkcm = c("http://thanhnien.vn/thoi-su/date/trang-",
-               "http://thanhnien.vn/doi-song/date/trang-",
+    linkcm = c("http://thanhnien.vn/thoi-su/",
+               "http://thanhnien.vn/doi-song/",
                "http://thanhnien.vn/toi-viet/date/trang-",
                "http://thanhnien.vn/giao-duc/date/trang-",
                "http://thanhnien.vn/kinh-doanh/date/trang-",
@@ -262,30 +262,19 @@ node_par = function(site, cm = NULL) {
   
   # Thanhnien.vn
   if (site == "thanhnien") {
-    # Link prefix
-    link_prefix = "http://thanhnien.vn"
     # Nodes
     source_suffix = ".html"
     source_pagenumber = "trang-"
-    source_dateformat = "%d/%m/%Y"
+    source_dateformat = "%Y-%m-%d"
+    article_selector = ".title"
     if (cm =="toiviet") {
-      content_selector = "strong , #abody div, #chapeau div"
+      content_selector = "#abody div , #chapeau"
     } else {
       content_selector = ".content div div"
     }
     date_selector = ".meta time"
-    article_selector = ".clearfix .title"
-    webscheme = 1
-    
-    # Nodes
-    source_suffix = ".chn"
-    source_pagenumber = "trang-"
-    source_dateformat = "%d/%m/%Y"
-    article_selector = "h3 a"
-    content_selector = ".sapo, .newsbody p"
-    date_selector = ".date_zoom .date"
     # Link prefix
-    link_prefix = "http://cafef.vn"
+    link_prefix = "http://thanhnien.vn"
     webscheme = 3
   }
   
@@ -397,8 +386,6 @@ node_par = function(site, cm = NULL) {
     link_prefix = "http://congluan.vn"
     webscheme = 1
   }
-  # Save directory
-  save_dir = paste(dir, "/", site, "/tempData", sep = "")
   
   # nguoiduatin.vn
   if (site == "nguoiduatin") {
@@ -444,9 +431,9 @@ node_par = function(site, cm = NULL) {
     source_suffix = ""
     source_pagenumber = "p"
     source_dateformat = "%d-%m-%Y"
-    article_selector = ".title_list_news_cate"
-    content_selector = "#content_detail > p, #content_detail > h2, #content_detail > div> font > b"
-    date_selector = ".time_detail a"
+    article_selector = ".title a"
+    content_selector = ".single-excerpt , #content_detail p"
+    date_selector = ".post-date"
     # Link prefix
     link_prefix = "http://vtc.vn"
     webscheme = 3
@@ -471,7 +458,7 @@ node_par = function(site, cm = NULL) {
     source_suffix = ""
     source_pagenumber = ""
     source_dateformat = "%d-%m-%Y"
-    article_selector = ".media-heading .pull-left"
+    article_selector = ".col-sm-12 .col-sm-12 .pull-left , .img3 .pull-left"
     content_selector = "p"
     date_selector = ".icon_date_top"
     # Link prefix
@@ -494,7 +481,7 @@ node_par = function(site, cm = NULL) {
   }
   
   # Save directory
-  save_dir = paste(dir, "/", "tempData", sep = "")
+  save_dir_prefix = paste(dir, "/", "tempData", sep = "")
   if (!exists("source_pagenumber")) source_pagenumber = ""
   if (!exists("source_dateformat")) source_dateformat = ""
   # END #
@@ -505,7 +492,7 @@ node_par = function(site, cm = NULL) {
               content_selector=content_selector,
               date_selector=date_selector,
               article_selector=article_selector,
-              save_dir=save_dir,
+              save_dir_prefix=save_dir_prefix,
               webscheme=webscheme))
 }
 

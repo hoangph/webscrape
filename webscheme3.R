@@ -27,7 +27,7 @@ runscheme = function(site, update, last_date_table, link_list, start_date, end_d
     }
     #___Vong lap de lay link####
     # Starting point
-    sp = start_point(3, save_dir)
+    sp = start_point(save_dir = save_dir, file_index_by = file_index_by,site = site, code = code)
     k = sp[[1]]
     i = sp[[2]]
     
@@ -43,7 +43,7 @@ runscheme = function(site, update, last_date_table, link_list, start_date, end_d
     while (ok) {
       # Lay nhieu link trong chuyen muc mot luc
       if (update == 1) temp = rep(NA, 20)
-      if (update != 1) temp = rep(NA, 200)
+      if (update != 1) temp = rep(NA, 20)
       if (update == 2) temp = rep(NA, 20)
       final = list(link = temp, title = temp, date = temp, content = temp)
       col_names = c("link", "title", "date", "content")

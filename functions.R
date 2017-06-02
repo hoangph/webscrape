@@ -50,7 +50,7 @@ start_point = function(file_index_by, save_dir, site, code) {
         d = today()
         i = format_date(d)
       } else {
-        d = od - 1
+        d = min(od) - 1
         i = format_date(d)
       }
     }
@@ -506,6 +506,7 @@ time_summary = function(site, unit = 'month') {
   year_list = list.years(site)
   out.table = c()
   for (year in year_list) {
+    cat("reading \n", year)
     data = call_final(site, index = year)
     data = data[!duplicated(data$link),]
     data = cbind(data, time_round(data, 'date'))

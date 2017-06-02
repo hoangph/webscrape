@@ -59,7 +59,7 @@ scrape_site = function(site, update, file_index_by,
     latest.data = call_file(site = site, file.type = final.source, year_end)
     # In case latest data is from last year
     while (length(latest.data) == 0) {
-      year_end = year_end-2
+      year_end = year_end-1
       latest.data = call_file(site = site, file.type = final.source, year_end)
     }
     latest.data = latest.data[!is.na(latest.data$date),]
@@ -77,7 +77,7 @@ scrape_site = function(site, update, file_index_by,
   # List of sections to scrape
   cm_list = link_par(site)
   
-  cat('done preparing n/')
+  cat('done preparing \n')
   
   setwd(dir)
   source('one_code_rules_all.R')

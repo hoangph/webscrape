@@ -16,7 +16,7 @@ scrape.by_page = function(site, start_date, end_date, last_date_table,
     content_selector = scrape_params[["content_selector"]]
     date_selector = scrape_params[["date_selector"]]
     article_selector = scrape_params[["article_selector"]]
-    save_dir = scrape_params[["save_dir"]]
+    save_dir_prefix = scrape_params[["save_dir_prefix"]]
     # For updating: end at the date of the last record
     if (update == 1) {
       d = last_date_table$date[last_date_table$category == ten_cm]
@@ -26,7 +26,8 @@ scrape.by_page = function(site, start_date, end_date, last_date_table,
     skipped_page = c()
     last_count = 0
     final.record.signal = 0
-    sp = start_point(file_index_by = file_index_by, save_dir = save_dir,
+    sp = start_point(file_index_by = file_index_by, 
+                     save_dir = paste(save_dir_prefix, site, sep = '/'),
                      site = site, code = ten_cm)
     k = sp[[1]]
     i = sp[[2]]
@@ -49,7 +50,7 @@ scrape.by_page = function(site, start_date, end_date, last_date_table,
         cat("Looking into page", i," section: ", as.character(ten_cm),"\n")
         
         ## Indentify the articles on page i
-        link_list_result = source %>% paste(i,source_suffix,sep = "") %>% 
+        link_list_result = source %>% paste(i,source_suffix,'/',sep = "") %>% 
           get_article(article_selector)
         ## If no article is found -> last page of the section 
         ## -> count 20 times before stopping
@@ -156,14 +157,16 @@ scrape.by_page = function(site, start_date, end_date, last_date_table,
       if (last_date < start_date) {
         message("Reached start_date. Saving and moving to next section...")
         if (update != 'test') {
-          save_list_csv(final, save_dir, site, code = ten_cm, 
+          save_list_csv(final, save_dir = paste(save_dir_prefix, site, sep = '/'), 
+                        site = site, code = ten_cm, 
                         col_names, suffix = paste("file",k,"page",i-1,sep=""))
         }
         break
       } else {
         cat("Saving...\n")
         if (update != 'test') {
-          save_list_csv(final, save_dir, site, code = ten_cm, col_names, 
+          save_list_csv(final, save_dir = paste(save_dir_prefix, site, sep = '/'),
+                        site, code = ten_cm, col_names, 
                         suffix = paste("file",k,"page",i-1,sep=""))
         }
         k = k + 1
@@ -191,7 +194,7 @@ scrape.by_date = function(site, start_date, end_date, last_date_table,
     content_selector = scrape_params[["content_selector"]]
     date_selector = scrape_params[["date_selector"]]
     article_selector = scrape_params[["article_selector"]]
-    save_dir = scrape_params[["save_dir"]]
+    save_dir_prefix = scrape_params[["save_dir_prefix"]]
     # For updating: end at the date of the last record
     if (update == 1) {
       d = last_date_table$date[last_date_table$category == ten_cm]
@@ -201,12 +204,16 @@ scrape.by_date = function(site, start_date, end_date, last_date_table,
     skipped_page = c()
     last_count = 0
     final.record.signal = 0
-    sp = start_point(file_index_by = file_index_by, save_dir = save_dir,
+    sp = start_point(file_index_by = file_index_by, 
+                     save_dir = paste(save_dir_prefix, site, sep = '/'),
                      site = site, code = ten_cm)
     k = sp[[1]]
-    i = sp[[2]]
+    # This i is not in the right format to be added to the links
+    i.wrong_format = sp[[2]]
+    d = as.Date(i.wrong_format, format = '%d-%m-%Y')
+    # Transform to the right format
+    i = format_date(d, source_dateformat)
     
-    d = as.Date(i, format = '%d-%m-%Y')
     # Loop within one section
     while (final.record.signal == 0) {
       # Create a big object for everything 
@@ -268,7 +275,7 @@ scrape.by_date = function(site, start_date, end_date, last_date_table,
           message("Skipping page...", i)
           skipped = c(skipped, i)
           d = d - 1
-          i = format_date(d)
+          i = format_date(d, source_dateformat)
           ### Next page in loop
           next
         }
@@ -279,10 +286,13 @@ scrape.by_date = function(site, start_date, end_date, last_date_table,
         ### Remove duplicated links from the list
         ### Check the first 3 characters in titles to see if they are duplicates of other titles
         index_rm = which(str_sub(as.character(title),1,3) %in% c("\n  ",""))
-        if (length(index_rm) > 0) {
+        ### Check duplicated links in the list
+        index_rm = c(index_rm, duplicated(link)) %>% unique()
+        if (length(index_rm[index_rm > 0]) > 0) {
           link = link[-index_rm]
           title = title[-index_rm]
         }
+        
         ### If links and titles have different lengths then skip page
         if (length(link) != length(title)) {
           message("Error: link and title mismatched, skipping page...") 
@@ -338,14 +348,16 @@ scrape.by_date = function(site, start_date, end_date, last_date_table,
       if (last_date < start_date) {
         message("Reached start_date. Saving and moving to next section...")
         if (update != 'test') {
-          save_list_csv(final, save_dir, site, code = ten_cm, 
+          save_list_csv(final, save_dir = paste(save_dir_prefix, site, sep = '/'),
+                        site, code = ten_cm, 
                         col_names, suffix = paste("file",k,"page",d+1,sep=""))
         }
         break
       } else {
         cat("Saving...\n")
         if (update != 'test') {
-          save_list_csv(final, save_dir, site, code = ten_cm, 
+          save_list_csv(final, save_dir = paste(save_dir_prefix, site, sep = '/'),
+                        site, code = ten_cm, 
                         col_names, suffix = paste("file",k,"page",d+1,sep=""))
         }
         k = k + 1
@@ -369,14 +381,14 @@ scrape.by_date_page = function(site, start_date, end_date, last_date_table,
     source = cm_list$linkcm[j]
     scrape_params = node_par(site, ten_cm)
     
-    link_prefix = par[["link_prefix"]]
-    source_suffix = par[["source_suffix"]]
-    source_pagenumber = par[["source_pagenumber"]]
-    source_dateformat = par[["source_dateformat"]]
-    content_selector = par[["content_selector"]]
-    date_selector = par[["date_selector"]]
-    article_selector = par[["article_selector"]]
-    save_dir = par[["save_dir"]]
+    link_prefix = scrape_params[["link_prefix"]]
+    source_suffix = scrape_params[["source_suffix"]]
+    source_pagenumber = scrape_params[["source_pagenumber"]]
+    source_dateformat = scrape_params[["source_dateformat"]]
+    content_selector = scrape_params[["content_selector"]]
+    date_selector = scrape_params[["date_selector"]]
+    article_selector = scrape_params[["article_selector"]]
+    save_dir_prefix = scrape_params[["save_dir_prefix"]]
     
     # For updating: end at the date of the last record
     if (update == 1) {
@@ -387,7 +399,8 @@ scrape.by_date_page = function(site, start_date, end_date, last_date_table,
     skipped_page = c()
     last_count = 0
     final.record.signal = 0
-    sp = start_point(file_index_by = file_index_by, save_dir = save_dir,
+    sp = start_point(file_index_by = file_index_by,
+                     save_dir = paste(save_dir_prefix, site, sep = '/'),
                      site = site, code = ten_cm)
     k = sp[[1]]
     # This i is not in the right format to be added to the links
@@ -479,10 +492,13 @@ scrape.by_date_page = function(site, start_date, end_date, last_date_table,
         ### Remove duplicated links from the list
         ### Check the first 3 characters in titles to see if they are duplicates of other titles
         index_rm = which(str_sub(as.character(title),1,3) %in% c("\n  ",""))
-        if (length(index_rm) > 0) {
+        ### Check duplicated links in the list
+        index_rm = c(index_rm, duplicated(link)) %>% unique()
+        if (length(index_rm[index_rm > 0]) > 0) {
           link = link[-index_rm]
           title = title[-index_rm]
         }
+        
         ### If links and titles have different lengths then skip page
         if (length(link) != length(title)) {
           message("Error: link and title mismatched, skipping page...") 
@@ -538,14 +554,16 @@ scrape.by_date_page = function(site, start_date, end_date, last_date_table,
       if (last_date < start_date) {
         message("Reached start_date. Saving and moving to next section...")
         if (update != 'test') {
-          save_list_csv(final, save_dir, site, code = ten_cm, 
+          save_list_csv(final, save_dir = paste(save_dir_prefix, site, sep = '/'),
+                        site, code = ten_cm, 
                         col_names, suffix = paste("file",k,"page",d+1,sep=""))
         }
         break
       } else {
         cat("Saving...\n")
         if (update != 'test') {
-          save_list_csv(final, save_dir, site, code = ten_cm, 
+          save_list_csv(final, save_dir = paste(save_dir_prefix, site, sep = '/'),
+                        site, code = ten_cm, 
                         col_names, suffix = paste("file",k,"page",d+1,sep=""))
         }
         k = k + 1
