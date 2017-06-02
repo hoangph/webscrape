@@ -23,13 +23,15 @@ link_par = function(site) {
   # Vietnamnet.vn
   if (site == "vietnamnet") {
     tencm = c("thoisu","kinhdoanh","giaoduc","phapluat","doisong","bandoc")
-    linkcm = c("http://vietnamnet.vn/vn/thoi-su/trang",
-               "http://vietnamnet.vn/vn/kinh-doanh/trang",
-               "http://vietnamnet.vn/vn/giao-duc/trang",
-               "http://vietnamnet.vn/vn/phap-luat/trang",
-               "http://vietnamnet.vn/vn/doi-song/trang",
-               "http://vietnamnet.vn/vn/ban-doc/trang")
-    cm_list = data.frame(tencm,linkcm)
+    linkcm = c("http://vietnamnet.vn/vn/date",
+               "http://vietnamnet.vn/vn/date",
+               "http://vietnamnet.vn/vn/date",
+               "http://vietnamnet.vn/vn/date",
+               "http://vietnamnet.vn/vn/date",
+               "http://vietnamnet.vn/vn/date")
+    tencm.link = c('thoi-su', "kinh-doanh", "giao-duc", "phap-luat", "doi-song",
+                   "ban-doc")
+    cm_list = data.frame(tencm,linkcm, tencm.link)
     rm(tencm,linkcm)
   }
   
@@ -281,14 +283,17 @@ node_par = function(site, cm = NULL) {
   
   # Vietnamnet.vn
   if (site == "vietnamnet") {
-    # Link prefix
-    link_prefix = "http://vietnamnet.vn"
     # Nodes
-    source_suffix = "/index.html"
+    source_suffix = "index.html"
+    source_pagenumber = ""
+    source_dateformat = "%Y%m%d"
+    article_selector = ".f-16"
     content_selector = "#ArticleContent p , strong"
     date_selector = ".ArticleDate"
-    article_selector = ".dotter .f-16"
-    webscheme = 1
+    # Link prefix
+    link_prefix = "http://vietnamnet.vn"
+    link_structure = "source/i/ten_cm/source_suffix"
+    webscheme = 2
   }
   
   # dantri.com.vn
@@ -484,6 +489,7 @@ node_par = function(site, cm = NULL) {
   save_dir_prefix = paste(dir, "/", "tempData", sep = "")
   if (!exists("source_pagenumber")) source_pagenumber = ""
   if (!exists("source_dateformat")) source_dateformat = ""
+  if (!exists("link_structure")) link_structure = ""
   # END #
   return(list(link_prefix = link_prefix,
               source_suffix = source_suffix,
@@ -493,6 +499,7 @@ node_par = function(site, cm = NULL) {
               date_selector=date_selector,
               article_selector=article_selector,
               save_dir_prefix=save_dir_prefix,
+              link_structure = link_structure,
               webscheme=webscheme))
 }
 

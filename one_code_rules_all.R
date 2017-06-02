@@ -17,6 +17,8 @@ scrape.by_page = function(site, start_date, end_date, last_date_table,
     date_selector = scrape_params[["date_selector"]]
     article_selector = scrape_params[["article_selector"]]
     save_dir_prefix = scrape_params[["save_dir_prefix"]]
+    link_structure = scrape_params[["link_structure"]]
+    tencm.link = cm_list$tencm.link[j]
     # For updating: end at the date of the last record
     if (update == 1) {
       d = last_date_table$date[last_date_table$category == ten_cm]
@@ -51,14 +53,15 @@ scrape.by_page = function(site, start_date, end_date, last_date_table,
         cat("Looking into page", i," section: ", as.character(ten_cm),"\n")
         
         ## Indentify the articles on page i
-        link_list_result = source %>% paste(i,source_suffix,'/',sep = "") %>% 
+        t.link_list_result = construct_link(link_structure, source = source,
+                                            i = i, ten_cm = tencm.link, 
+                                            source_suffix = source_suffix) %>%
           get_article(article_selector)
         ## If no article is found -> possibly last page of the section 
         ## -> count 20 times before stopping
         ## if there is article -> only some dates have no articles
         ## -> reset empty_count 
         if (length(link_list_result[[3]])==0) {
-          last_count = last_count + 1
           empty_count = empty_count + 1
         } else { empty_count = 0 }
         ## Compare with last page -> if duplicated -> end of section
@@ -197,10 +200,13 @@ scrape.by_date = function(site, start_date, end_date, last_date_table,
     scrape_params = node_par(site, ten_cm)
     link_prefix = scrape_params[["link_prefix"]]
     source_suffix = scrape_params[["source_suffix"]]
+    source_dateformat = scrape_params[["source_dateformat"]]
     content_selector = scrape_params[["content_selector"]]
     date_selector = scrape_params[["date_selector"]]
     article_selector = scrape_params[["article_selector"]]
     save_dir_prefix = scrape_params[["save_dir_prefix"]]
+    link_structure = scrape_params[["link_structure"]]
+    tencm.link = cm_list$tencm.link[j]
     # For updating: end at the date of the last record
     if (update == 1) {
       d = last_date_table$date[last_date_table$category == ten_cm]
@@ -239,14 +245,15 @@ scrape.by_date = function(site, start_date, end_date, last_date_table,
         cat("Looking into date", i," section: ", as.character(ten_cm),"\n")
         
         ## Indentify the articles on page i
-        link_list_result = source %>% paste(i,source_suffix,sep = "") %>% 
+        link_list_result = construct_link(link_structure, source = source,
+                                            i = i, ten_cm = tencm.link, 
+                                            source_suffix = source_suffix) %>%
           get_article(article_selector)
         ## If no article is found -> possibly last page of the section 
         ## -> count 20 times before stopping
         ## if there is article -> only some dates have no articles
         ## -> reset empty_count 
         if (length(link_list_result[[3]])==0) {
-          last_count = last_count + 1
           empty_count = empty_count + 1
         } else { empty_count = 0 }
         ## Compare with last page
@@ -311,7 +318,7 @@ scrape.by_date = function(site, start_date, end_date, last_date_table,
           message("Error: link and title mismatched, skipping page...") 
           skipped = c(skipped, i)
           d = d - 1
-          i = format_date(d)
+          i = format_date(d, source_dateformat)
           ### Next page in loop
           next
         }
@@ -329,7 +336,7 @@ scrape.by_date = function(site, start_date, end_date, last_date_table,
         
         # Done with current page, move to next page of the same section
         d = d - 1
-        i = format_date(d)
+        i = format_date(d, source_dateformat)
       } # End page loop
       
       # By now we have had the first few links of this section
@@ -402,7 +409,8 @@ scrape.by_date_page = function(site, start_date, end_date, last_date_table,
     date_selector = scrape_params[["date_selector"]]
     article_selector = scrape_params[["article_selector"]]
     save_dir_prefix = scrape_params[["save_dir_prefix"]]
-    
+    link_structure = scrape_params[["link_structure"]]
+    tencm.link = cm_list$tencm.link[j]
     # For updating: end at the date of the last record
     if (update == 1) {
       d = last_date_table$date[last_date_table$category == ten_cm]
@@ -430,9 +438,9 @@ scrape.by_date_page = function(site, start_date, end_date, last_date_table,
       col_names = c("link", "title", "date", "content")
       rm(temp)
       
-      ######################################
+      #====================================#
       ##########  PREPARE LINKS ############
-      ######################################
+      #====================================#
       
       ## While the object is still not filled completely, loop through date
       while (sum(is.na(final[["link"]])) > 0) {
@@ -444,8 +452,9 @@ scrape.by_date_page = function(site, start_date, end_date, last_date_table,
           ## Message
           cat("Looking into date", i," page:", page, ", section: ", as.character(ten_cm),"\n")      
           ## Indentify the articles on page i
-          t.link_list_result = source %>% paste(i, "/", source_pagenumber, 
-                                                page, source_suffix, sep = "") %>% 
+          t.link_list_result = construct_link(link_structure, source = source,
+                                              i = i, ten_cm = tencm.link, 
+                                              source_suffix = source_suffix) %>%
             get_article(article_selector)
           ## If no article is found -> last page of that day 
           if (length(t.link_list_result[[3]]) == 0) last_daily = last_daily + 1
@@ -461,7 +470,6 @@ scrape.by_date_page = function(site, start_date, end_date, last_date_table,
         ## if there is article -> only some dates have no articles
         ## -> reset empty_count 
         if (length(link_list_result[[3]])==0) {
-          last_count = last_count + 1
           empty_count = empty_count + 1
         } else { empty_count = 0 }
         ## Compare with last page

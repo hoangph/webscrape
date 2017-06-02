@@ -17,6 +17,23 @@ call.library()
 ####   General purpose functions  ####
 ###--------------------------------###
 
+# Generating links based on specified structure
+construct_link = function(link_structure,
+                          source="", i="", ten_cm="", 
+                          page="", source_suffix="") {
+  elements = str_split(link_structure, '/') %>% unlist
+  html_link = NULL
+  for (e in seq(length(elements))) {
+    if (e == 1) {
+      html_link = get(elements[e])
+    } else {
+      html_link = paste(html_link, get(elements[e]), sep = "/")
+    }
+  }
+  
+  return(html_link)
+}
+
 # Starting point
 start_point = function(file_index_by, save_dir, site, code) {
   setwd(save_dir)
