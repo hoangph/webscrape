@@ -25,7 +25,7 @@ construct_link = function(link_structure,
   str_format = link_structure[[1]]
   count = str_count(str_format, "%s")
   for (c in seq(count)) {
-    str_format = str_replace(str_format, "%s", get(elements[c]))
+    str_format = str_replace(str_format, "%s", as.character(get(elements[c])))
   }
   return(str_format)
 }
@@ -243,6 +243,7 @@ call_file = function(file.type, site, index) {
   if (file.type == "tlink") setwd(paste(dir,"/tempLink",sep=""))
   if (file.type == "processed") setwd(paste(dir,"/finalProcessed",sep=""))
   if (file.type == "final.store") setwd("/run/user/1000/gvfs/smb-share:server=mi_storage,share=intern/webscrape/finalData")
+  if (file.type == "final.link") setwd("/run/user/1000/gvfs/smb-share:server=mi_storage,share=intern/webscrape/finalLink")
   text = c()
   for (i in c(1:length(index))) {
     file.name = paste(site, "_", index[i], ".csv", sep = "")
@@ -280,7 +281,7 @@ call_count = function(site, key_code) {
 }
 
 # Backup/Copy files using Freefilesync
-filesync = function(operation, freefilesync.dir, batchfile) {
+filesync = function(operation, freefilesync.dir, batchfile, dir = dir) {
   if (operation == "ubuntu") command = "FreeFileSync "
   if (operation == "windows") command = "FreeFileSync.exe "
   setwd(freefilesync.dir)
@@ -539,6 +540,7 @@ time_summary = function(site, unit = 'month') {
     datasum = summarise(datasum, no.ar = sum(!is.na(link)))
     out.table = rbind(out.table, datasum)
   }
+  out.table = out.table[!is.na(out.table[,1]),]
   return(out.table)
 }
 

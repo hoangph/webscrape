@@ -246,10 +246,11 @@ scrape.by_date = function(site, start_date, end_date, last_date_table,
         cat("Looking into date", i," section: ", as.character(ten_cm),"\n")
         
         ## Indentify the articles on page i
-        link_list_result = construct_link(link_structure, source = source,
-                                            i = i, ten_cm = tencm.link, 
-                                            source_suffix = source_suffix) %>%
-          get_article(article_selector)
+        html_link = construct_link(link_structure, source = source,
+                                   i = i, ten_cm = tencm.link, 
+                                   source_suffix = source_suffix)
+        message(html_link)
+        link_list_result = html_link %>% get_article(article_selector)
         ## If no article is found -> possibly last page of the section 
         ## -> count 20 times before stopping
         ## if there is article -> only some dates have no articles
@@ -302,13 +303,18 @@ scrape.by_date = function(site, start_date, end_date, last_date_table,
         }
         link = link_list_result[[2]]
         ### Links without the domain need to be corrected
-        link[str_sub(link,1,4)!="http"] = paste(link_prefix,link[str_sub(link,1,4)!="http"],sep="")
+        link[str_sub(link,1,4)!="http" & !is.na(link)] = paste(link_prefix,link[str_sub(link,1,4)!="http" & !is.na(link)],sep="")
         title = link_list_result[[3]]
         ### Remove duplicated links from the list
         ### Check the first 3 characters in titles to see if they are duplicates of other titles
         index_rm = which(str_sub(as.character(title),1,3) %in% c("\n  ",""))
         ### Check duplicated links in the list
         index_rm = c(index_rm, duplicated(link)) %>% unique()
+        ### Check NA link
+        na.link.detect = which(is.na(link))
+        if (length(na.link.detect) > 0) message("NA link detected")
+        
+        index_rm = c(index_rm, na.link.detect)
         if (length(index_rm[index_rm > 0]) > 0) {
           link = link[-index_rm]
           title = title[-index_rm]

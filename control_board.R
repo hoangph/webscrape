@@ -27,11 +27,9 @@ if (machine != "ser" & operation == "ubuntu") filesync("ubuntu", "/usr/bin", pas
 
 #### __Targets ####
 
-sites_scr1 = c("vneconomy","ndh", "vtc", "toquoc", 'doanhnhansaigon', 
-               'thanhnien', 'laodong')
-sites_scr2 = c('vietnamnet', 'dantri', 'congluan', 'baodatviet', 'cafef', 'nhandan', 
-               'baophapluat', 'vnexpress')
-sites = c(sites_scr1, sites_scr2)
+sites = c("baodatviet", "baophapluat", "cafef", "dantri", 
+          "laodong", "ndh", "nhandan", "thanhnien", "toquoc", 
+          "vietnamnet", "vneconomy", "vnexpress", "vov", "vtc")
 #### __configurations ####
 #Update: FALSE-no, TRUE-yes, 'test'-test
 #update = 2
@@ -46,8 +44,8 @@ scrape_site = function(site, update, file_index_by,
   start_date = clean_date("01/01/2010")
   if (update == 'test') start_date <- today()
   end_date = today()
-  
-  link_list = call_link(site, "link")
+
+  link_list = call_file(file.type = "final.link", site = site, index = "link")
   link_temp = call_tlink(site, "link")
   link_list = rbind(link_list, link_temp) %>% unique
   rm(link_temp)
@@ -112,19 +110,22 @@ scrape_site = function(site, update, file_index_by,
       sum(testdata$content == "")
   }
   
-  #---------------------------------------#
-  ####          Syncronize             ####
-  #---------------------------------------#
-  
-  # Update temp files: scraper -> Storage (Update)
-  if (update != 'test' & machine != 'ser') {
-      filesync(operation = "ubuntu", freefilesync.dir = "/usr/bin", 
-               batchfile = paste(site, "temp", machine, "sto", "ffs_batch", sep = "."))
-      filesync(operation = "ubuntu", freefilesync.dir = "/usr/bin", 
-               batchfile = paste(site, "rmtemp", machine, "ffs_batch", sep = "."))
-  }
 
 } # end scrape_site
+
+
+#---------------------------------------#
+####          Syncronize             ####
+#---------------------------------------#
+sync_temp_to_store = function(site) {
+  if (update != 'test' & machine != 'ser') {
+    filesync(operation = "ubuntu", freefilesync.dir = "/usr/bin", 
+             batchfile = paste(site, "temp", machine, "sto", "ffs_batch", sep = "."))
+    filesync(operation = "ubuntu", freefilesync.dir = "/usr/bin", 
+             batchfile = paste(site, "rmtemp", machine, "ffs_batch", sep = "."))
+  }
+}
+# Update temp files: scraper -> Storage (Update)
 
 #---------------------------------------------------#
 ####          MERGE FILES INTO DATABASE          ####

@@ -22,15 +22,16 @@ link_par = function(site) {
   
   # Vietnamnet.vn
   if (site == "vietnamnet") {
-    tencm = c("thoisu","kinhdoanh","giaoduc","phapluat","doisong","bandoc")
+    tencm = c("thoisu","kinhdoanh","giaoduc","phapluat","doisong","bandoc","batdongsan")
     linkcm = c("http://vietnamnet.vn/vn/date",
+               "http://vietnamnet.vn/vn/date",
                "http://vietnamnet.vn/vn/date",
                "http://vietnamnet.vn/vn/date",
                "http://vietnamnet.vn/vn/date",
                "http://vietnamnet.vn/vn/date",
                "http://vietnamnet.vn/vn/date")
     tencm.link = c('thoi-su', "kinh-doanh", "giao-duc", "phap-luat", "doi-song",
-                   "ban-doc")
+                   "ban-doc","bat-dong-san")
     cm_list = data.frame(tencm,linkcm, tencm.link)
     rm(tencm,linkcm)
   }
@@ -306,6 +307,8 @@ node_par = function(site, cm = NULL) {
     # Link prefix
     link_prefix = "http://vietnamnet.vn"
     link_structure = "source/i/ten_cm/source_suffix"
+    link_structure = list("%s/%s/%s/%s",
+                          "source/i/ten_cm/source_suffix")
     webscheme = 2
   }
   
